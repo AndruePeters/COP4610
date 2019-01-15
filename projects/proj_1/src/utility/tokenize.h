@@ -5,6 +5,8 @@
 #ifndef _GROUP12_UTILITY_TOKENIZE_H_
 #define _GROUP12_UTILITY_TOKENIZE_H_
 
+
+
 struct instruction {
   char** tokens;
   int num_tokens;
