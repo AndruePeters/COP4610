@@ -1,6 +1,7 @@
 #include <string.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "tokenize.h"
 
@@ -11,17 +12,26 @@
   Input: instruction*
          char*
 */
-void add_tokens(instruction* instr_ptr, char* line)
+void add_tokens(struct instruction* instr_ptr, char* line)
 {
-  char *token, *temp;
-  char *saveptr = NULL; // used for strtok_r
+  char *token;
+  char *saveptr = NULL;
 
-  // get first token
-  token = strtok_r(line, "%ms", &saveptr);
+  char temp[100];
+  strcpy(temp, line);
 
-  while (token = strtok_r(line, "%ms", &saveptr)) {
+  token = strtok_r(temp, " ", &saveptr);
+
+  while (token != NULL) {
+    //add_token(instr_ptr, token);
+    printf("token: %s\n", token);
     add_token(instr_ptr, token);
+    token = strtok_r(NULL, " ", &saveptr);
   }
+  /*
+  while ( (token = strtok_r(line, "%ms", &saveptr)) != NULL) {
+    add_token(instr_ptr, token);
+  }*/
 }
 
 /*
@@ -31,15 +41,15 @@ void add_tokens(instruction* instr_ptr, char* line)
   Input: instruction*
          char*
 */
-void add_token(instruction* instr_ptr, char* tok)
+void add_token(struct instruction* instr_ptr, char* tok)
 {
-  // extend token array to accomodate an additional token
+
   if (instr_ptr->num_tokens == 0)
     instr_ptr->tokens = (char**)malloc(sizeof(char*));
   else
     instr_ptr->tokens = (char**)realloc(instr_ptr->tokens, (instr_ptr->num_tokens+1) * sizeof(char*));
 
-  // allocate char array for new token in new slot
+
   instr_ptr->tokens[instr_ptr->num_tokens] = (char *)malloc( (strlen(tok)+1) * sizeof(char));
   strcpy(instr_ptr->tokens[instr_ptr->num_tokens], tok);
   ++instr_ptr->num_tokens;
@@ -48,7 +58,7 @@ void add_token(instruction* instr_ptr, char* tok)
 /*
   Prints the tokens to terminal.
 */
-void print_tokens(instruction* instr_ptr)
+void print_tokens(struct instruction* instr_ptr)
 {
   int i;
   printf("Tokens:\n");
@@ -59,7 +69,7 @@ void print_tokens(instruction* instr_ptr)
 /*
   Clears and frees memory for instruction*
 */
-void clear_instruction(instruction* instr_ptr)
+void clear_instruction(struct instruction* instr_ptr)
 {
   int i;
   for (i = 0; i < instr_ptr->num_tokens; ++i)

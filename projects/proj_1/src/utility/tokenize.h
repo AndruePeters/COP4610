@@ -15,22 +15,22 @@ struct instruction {
 /*
   Tokenizes input from a char array into (*instr_ptr).
 */
-void add_tokens(instruction* instr_ptr, char* line);
+void add_tokens(struct  instruction* instr_ptr, char* line);
 
 /*
   Simply handles adding a token to (*instr_ptr).
 */
-void add_token(insruction* instr_ptr, char* tok);
+void add_token(struct instruction* instr_ptr, char* tok);
 
 /*
   Dumps tokens to stdout.
 */
-void print_tokens(instruction* instr_ptr);
+void print_tokens(struct instruction* instr_ptr);
 
 /*
   Clears instr_ptr and frees memory.
 */
-void clear_instruction(instruction* instr_ptr);
+void clear_instruction(struct instruction* instr_ptr);
 
 
 #endif
