@@ -38,24 +38,27 @@ void add_tokens(struct instruction* instr_ptr, char* line)
 */
 void add_token(struct instruction* instr_ptr, char* tok)
 {
+  char **old_tok = instr_ptr->tokens;
 
   if (instr_ptr->num_tokens == 0) {
     instr_ptr->tokens = (char**)malloc(sizeof(char*));
     if (instr_ptr->tokens == NULL) {
-      printf("MALLOC FAILED.\n");
+      printf("malloc failed.\n");
     }
-  }
-  else {
+  } else {
+    /* Code often fails here. Can't trigger segfault in gdb */
     instr_ptr->tokens = (char**)realloc(instr_ptr->tokens, (instr_ptr->num_tokens+1) * sizeof(char*));
     if (instr_ptr->tokens == NULL) {
-      printf("MALLOC FAILED.\n");
+      printf("realloc failed.\n");
+      instr_ptr->tokens = old_tok;
+      return;
     }
   }
 
 
   instr_ptr->tokens[instr_ptr->num_tokens] = (char *)malloc( (strlen(tok)+1) * sizeof(char));
   strcpy(instr_ptr->tokens[instr_ptr->num_tokens], tok);
-  ++instr_ptr->num_tokens;
+  instr_ptr->num_tokens++;
 }
 
 /*
