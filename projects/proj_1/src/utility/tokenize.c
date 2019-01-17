@@ -23,15 +23,10 @@ void add_tokens(struct instruction* instr_ptr, char* line)
   token = strtok_r(temp, " ", &saveptr);
 
   while (token != NULL) {
-    //add_token(instr_ptr, token);
-    printf("token: %s\n", token);
+    //printf("token: %s\n", token);
     add_token(instr_ptr, token);
     token = strtok_r(NULL, " ", &saveptr);
   }
-  /*
-  while ( (token = strtok_r(line, "%ms", &saveptr)) != NULL) {
-    add_token(instr_ptr, token);
-  }*/
 }
 
 /*
@@ -44,10 +39,18 @@ void add_tokens(struct instruction* instr_ptr, char* line)
 void add_token(struct instruction* instr_ptr, char* tok)
 {
 
-  if (instr_ptr->num_tokens == 0)
+  if (instr_ptr->num_tokens == 0) {
     instr_ptr->tokens = (char**)malloc(sizeof(char*));
-  else
+    if (instr_ptr->tokens == NULL) {
+      printf("MALLOC FAILED.\n");
+    }
+  }
+  else {
     instr_ptr->tokens = (char**)realloc(instr_ptr->tokens, (instr_ptr->num_tokens+1) * sizeof(char*));
+    if (instr_ptr->tokens == NULL) {
+      printf("MALLOC FAILED.\n");
+    }
+  }
 
 
   instr_ptr->tokens[instr_ptr->num_tokens] = (char *)malloc( (strlen(tok)+1) * sizeof(char));
@@ -60,6 +63,9 @@ void add_token(struct instruction* instr_ptr, char* tok)
 */
 void print_tokens(struct instruction* instr_ptr)
 {
+  if (instr_ptr->tokens == NULL)
+    return;
+
   int i;
   printf("Tokens:\n");
   for (i = 0; i < instr_ptr->num_tokens; ++i)
@@ -71,6 +77,10 @@ void print_tokens(struct instruction* instr_ptr)
 */
 void clear_instruction(struct instruction* instr_ptr)
 {
+  /* Exit early if pointer is null */
+  if (instr_ptr->tokens == NULL)
+    return;
+
   int i;
   for (i = 0; i < instr_ptr->num_tokens; ++i)
     free(instr_ptr->tokens[i]);
