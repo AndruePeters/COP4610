@@ -15,6 +15,9 @@ int main()
   char * instructions[] = { "cd path1/path2/path3/path4", "echo this is my argument", "ls -al", NULL};
   struct instruction instr;
 
+  instr.tokens = NULL;
+  instr.num_tokens = 0;
+  
   int i;
   for (i = 0; instructions[i] != NULL; ++i) {
     printf("%s\n", instructions[i]);
