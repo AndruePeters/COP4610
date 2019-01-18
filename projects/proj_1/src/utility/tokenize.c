@@ -12,21 +12,21 @@
   Input: instruction*
          char*
 */
-void add_tokens(struct instruction* instr_ptr, char* line)
+void add_tokens(struct instruction* instr_ptr, const char* line)
 {
-  char *token;
+  char *token, *cpy;
   char *saveptr = NULL;
 
-  char temp[100];
-  strcpy(temp, line);
+  cpy = (char *)malloc( (strlen(line)+1) * sizeof(char));
+  strcpy(cpy, line);
 
-  token = strtok_r(temp, " ", &saveptr);
+  token = strtok_r(cpy, " ", &saveptr);
 
   while (token != NULL) {
-    //printf("token: %s\n", token);
     add_token(instr_ptr, token);
     token = strtok_r(NULL, " ", &saveptr);
   }
+  free(cpy);
 }
 
 /*
@@ -41,17 +41,16 @@ void add_token(struct instruction* instr_ptr, char* tok)
   char **old_tok = instr_ptr->tokens;
 
   if (instr_ptr->num_tokens == 0) {
-    instr_ptr->tokens = (char**)malloc(sizeof(char*));
-    if (instr_ptr->tokens == NULL) {
-      printf("malloc failed.\n");
-    }
-  } else {
-    /* Code often fails here. Can't trigger segfault in gdb */
-    instr_ptr->tokens = (char**)realloc(instr_ptr->tokens, (instr_ptr->num_tokens+1) * sizeof(char*));
-    if (instr_ptr->tokens == NULL) {
-      printf("realloc failed.\n");
+    if (! (instr_ptr->tokens = (char**) malloc(sizeof(char*)))) {
+      fprintf(stderr, "Initial allocation in add_token failed for %s.\n", tok);
       instr_ptr->tokens = old_tok;
       return;
+    }
+    instr_ptr->tokens = (char**)malloc(sizeof(char*));
+  } else {
+    if (! (instr_ptr->tokens = (char**)realloc(instr_ptr->tokens, (instr_ptr->num_tokens+1) * sizeof(char*)))) {
+      fprintf(stderr, "Realloc failed in add_token for %s. \n", tok);
+      instr_ptr->tokens = old_tok;
     }
   }
 
