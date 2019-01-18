@@ -15,7 +15,7 @@ struct instruction {
 /*
   Tokenizes input from a char array into (*instr_ptr).
 */
-void add_tokens(struct  instruction* instr_ptr, char* line);
+void add_tokens(struct  instruction* instr_ptr, const char* line);
 
 /*
   Simply handles adding a token to (*instr_ptr).
