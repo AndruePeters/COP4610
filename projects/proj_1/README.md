@@ -49,3 +49,6 @@ semantics of the bash shell.
 * Support multiple pipes []
 * Unique built-ins with proper documentation []
 * Shell-ception: can execute your shell from within a running shell process repeatedly
+
+# Bugs Found
+1. First bug was in the tok_test.c. Issue was that uninitialized struct instruction can cause the program to crash at realloc. I assumed the compiler would set each value to NULL and 0. Soemtimes it worked, sometimes it didn't. Program fixed when I initialzied the values. 1/17/19
