@@ -18,8 +18,7 @@ int main()
 {
 
   //test_get_path();
-  char x = 0x7F;
-  printf("%c\n", x);
+
   char first[] = "/ab/cd/ef/";
   char sec[] = "as";
   char* res;
@@ -32,6 +31,8 @@ int main()
   snprintf(path, 5, "../a");
   expand_pwd(&path);
   printf("%s\n", path);
+  free(path);
+  path = NULL;
   return 0;
 }
 
