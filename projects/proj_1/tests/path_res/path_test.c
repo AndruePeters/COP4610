@@ -28,10 +28,15 @@ int main()
 
   char* path;
   path = calloc(5, sizeof(char));
+  char* home = calloc(5, sizeof(char));
   snprintf(path, 5, "../a");
+  snprintf(home, 5, "../a");
   expand_pwd(&path);
+  expand_home(&home);
   printf("%s\n", path);
+  printf("%s\n", home);
   free(path);
+  free(home);
   path = NULL;
   return 0;
 }
