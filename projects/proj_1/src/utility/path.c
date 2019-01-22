@@ -65,14 +65,15 @@ void concat_path(const char* first, const char* sec, char** result)
 
   /* Result stored in res
     res_size is the size needed to store res including null
-    sec_offset is used to determine if the program shoudl start from the origin
-      or one past for the case the strings appear with first = "..../" and
-      sec = "/.../". It removes the duplicate '/' that would be included by
-      copying both.
+    sec_offset is used to start copying sec from either sec[0] or from sec[1]
+      This is for the cases where first = "asdf/" and sec = "/asdf" and
+                                  first = "asdf" and sec = "/asdf"; Simple way to remove extra '/'
+      In the first case it combines to be "asdf/asdf" and the second case "asdf/asdf".
   */
   char* res;
   int res_size = 0;
   int sec_offset = 0;
+  bool insert_slash = 0;
 
   /* Now we should be good to go */
   /* Check for different combinations of '/' */
@@ -85,9 +86,60 @@ void concat_path(const char* first, const char* sec, char** result)
   } else if (first[strlen(first) - 1] != '/' && sec[0] == '/') {
     res_size = strlen(first) + strlen(sec) + 1;
     sec_offset = 0;
+  } else if (first[strlen(first) -1] != '/' && sec[0] != '/') {
+    res_size = strlen(first) + strlen(sec) + 1 + 1;
+    sec_offset = 0;
+    insert_slash = 1;
   }
 
   res = calloc(res_size, sizeof(char));
-  snprintf(res, res_size, "%s%s", first, sec + sec_offset);
+
+  /* This means we need to insert a '/' in between the strings */
+  if (insert_slash) {
+    snprintf(res, res_size, "%s/%s", first, sec);
+  } else {
+    snprintf(res, res_size, "%s%s", first, (sec + sec_offset));
+  }
+
   *result = res;
+}
+
+void expand_prev(char** p)
+{
+
+}
+
+void expand_home(char** p)
+{
+
+}
+
+void expand_path(char** p)
+{
+
+}
+
+void expand_pwd(char** p)
+{
+  /* getenv() returns a pointer to static data */
+  char* pwd = getenv("PWD");
+  char* exp = NULL;
+  concat_path(pwd, *p, &exp);
+  free(*p);
+  *p = exp;
+}
+
+bool file_exists(const char* p)
+{
+
+}
+
+bool is_file(const char* p)
+{
+
+}
+
+bool is_dir(const char* p)
+{
+
 }
