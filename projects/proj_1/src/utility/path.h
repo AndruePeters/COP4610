@@ -23,7 +23,8 @@ void expand_home(char** p);
 
 void expand_path(char** p);
 
-void expand_pwd(char** p);
+//void expand_pwd(char** p);
+void expand_pwd(char** dest, const char* src);
 
 bool file_exists(const char* p);
 

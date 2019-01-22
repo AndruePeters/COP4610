@@ -26,17 +26,14 @@ int main()
   printf("res: %s\n", res);
   free(res);
 
-  char* path;
+  char* path, *dest = NULL;
   path = calloc(5, sizeof(char));
-  char* home = calloc(5, sizeof(char));
   snprintf(path, 5, "../a");
-  snprintf(home, 5, "../a");
-  expand_pwd(&path);
-  expand_home(&home);
-  printf("%s\n", path);
-  printf("%s\n", home);
+  expand_pwd(&dest, path);
+  printf("Original: %s\nExpanded: %s\n", path, dest);
   free(path);
-  free(home);
+  free(dest);
+
   path = NULL;
   return 0;
 }

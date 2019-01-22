@@ -106,7 +106,7 @@ void concat_path(const char* first, const char* sec, char** result)
 
 void expand_prev(char** p)
 {
-
+  
 }
 
 void expand_home(char** p)
@@ -119,15 +119,59 @@ void expand_path(char** p)
 
 }
 
+/*
+  Version 1: Original string is deleted, freed, and then overwritten with the new address
+  Useful if user does not care about preserving original string.
+
 void expand_pwd(char** p)
 {
-  /* getenv() returns a pointer to static data */
+   getenv() returns a pointer to static data
   char* pwd = getenv("PWD");
   char* exp = NULL;
   concat_path(pwd, *p, &exp);
   free(*p);
   *p = exp;
+} */
+
+/*
+  Version 2: Returns a pointer to original string
+  User responsible for freeing memory. Original preserved.
+  This might be confusing since original address returned.
+
+char* expand_pwd(char** p)
+{
+  char* pwd = getenv("PWD");
+  char* exp = NULL, *bak = *p;
+  concat_path(pwd, *p, &exp);
+  *p = exp;
+  return bak;
+} */
+
+/*
+  Version 3: Returns pointer to new string.
+
+  Original is not edited.
+  Similar style to *alloc calls
+
+char* expand_pwd(const char* src)
+{
+  char *pwd = getenv("PWD");
+  char* exp = NULL;
+  concat_path(pwd, src, &exp);
+  return exp;
+} */
+
+/* Version 4: Uses (*dest, const *src) paradigm
+  Seems similar to other C lib styls I've seen.
+*/
+void expand_pwd(char** dest, const char* src)
+{
+  char* pwd = getenv("PWD");
+  char* exp = NULL;
+  concat_path(pwd, src, &exp);
+  *dest = exp;
 }
+
 
 bool file_exists(const char* p)
 {
