@@ -24,7 +24,7 @@ int main()
   char* res;
   concat_path(first, sec, &res);
   printf("res: %s\n", res);
-
+  free(res);
   return 0;
 }
 
