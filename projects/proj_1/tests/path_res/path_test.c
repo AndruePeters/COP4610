@@ -31,8 +31,7 @@ int main()
   snprintf(path, 5, "../a");
   expand_pwd(&dest, path);
   printf("Original: %s\nExpanded: %s\n", path, dest);
-  free(path);
-  free(dest);
+  expand_prev(&dest);
 
   path = NULL;
   return 0;
