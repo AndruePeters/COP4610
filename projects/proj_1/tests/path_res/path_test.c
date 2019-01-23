@@ -26,14 +26,14 @@ int main()
   printf("res: %s\n", res);
   free(res);
 
-  char* path, *dest = NULL;
-  path = calloc(5, sizeof(char));
-  snprintf(path, 5, "../a");
-  expand_pwd(&dest, path);
-  printf("Original: %s\nExpanded: %s\n", path, dest);
-  expand_prev(&dest);
-
-  path = NULL;
+  char* dest = NULL;
+  char* asdf = malloc(1000 * sizeof(char));
+  sprintf(asdf, "Users/druepeters/../stuff/stuff2/../a");
+  expand_pwd(&dest, "../a");
+  printf("Original: %s\nExpanded: %s\n", "../a", dest);
+  expand_prev(&asdf);
+  free(dest);
+  free(asdf);
   return 0;
 }
 
