@@ -18,9 +18,9 @@
       If this is a command, then check this last.
 */
 
-int get_num_slashes(int* buffer, int buff_size, char* str);
-int filter_prev(int* slash_pos, int num_slash,  char* str);
-void rem_space(char* des, const char* src);
+static int get_num_slashes(int* buffer, int buff_size, char* str);
+static int filter_prev(int* slash_pos, int num_slash,  char* str);
+static void rem_space(char* des, const char* src);
 
 char *get_path(const char* p)
 {
