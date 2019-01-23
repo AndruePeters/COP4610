@@ -132,9 +132,16 @@ void expand_prev(char** p)
   printf("Expanded:\t%s\n", path);
 }
 
-void expand_home(char** p)
+/*
+  Forms string in the form $HOME/src
+  Stores in *dest
+*/
+void expand_home(char** dest, const char* src)
 {
-
+  char* home = getenv("HOME");
+  char* exp = NULL;
+  concat_path(home, src, &exp);
+  *dest = exp;
 }
 
 void expand_path(char** p)

@@ -19,11 +19,10 @@ char *get_path(const char* p);
 
 void expand_prev(char** p);
 
-void expand_home(char** p);
+void expand_home(char** dest, const char* src);
 
 void expand_path(char** p);
 
-//void expand_pwd(char** p);
 void expand_pwd(char** dest, const char* src);
 
 bool file_exists(const char* p);
