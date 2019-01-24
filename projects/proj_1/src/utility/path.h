@@ -33,6 +33,8 @@ bool is_dir(const char* p);
 
 void concat_path(const char* first, const char* sec, char** result);
 
+bool is_valid_path(const char* path);
+
 enum Path_Type get_path_type(const char* p);
 
 

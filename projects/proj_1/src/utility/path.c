@@ -1,6 +1,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
 
 
 #include "path.h"
@@ -27,7 +32,31 @@ char *get_path(const char* p)
 
 }
 
+bool is_valid_path(const char* path)
+{
+  if (path == NULL) {
+    printf("Invalid. path is null.\n");
+    return false;
+  }
 
+  int len = strlen(path);
+  int i;
+
+  if (path[0] == '/' && path[1] == '.' && path[2] == '.'
+      && ( path[3] == '/' || isspace(path[3]))) {
+    printf("Invalid path. No parent of root directory.\n");
+    return false;
+  }
+
+  for (i = 1; i < len; ++i) {
+    if (path[i] == '~') {
+      printf("Invalid path. ~ can only appear once at beginning of path.\n");
+      return false;
+    }
+  }
+
+  return true;
+}
 /*
   Returns the Path_Type of p.
 */
@@ -165,17 +194,25 @@ void expand_pwd(char** dest, const char* src)
 
 bool file_exists(const char* p)
 {
-
+  struct stat s;
+  if (stat(p, &s) != 0)
+    return 0;
+if(errno == ENOENT) {
+  }
 }
 
 bool is_file(const char* p)
 {
-
+  struct stat s;
+  if (stat(p, &s) != 0)  return 0;
+  return ((s.st_mode & S_IFMT) == S_IFREG) || ((s.st_mode & S_IFMT) == S_IFDIR);
 }
 
 bool is_dir(const char* p)
 {
-
+  struct stat s;
+  if (stat(p, &s) != 0) return 0;
+  return (s.st_mode & S_IFMT) == S_IFDIR;
 }
 
 /*
