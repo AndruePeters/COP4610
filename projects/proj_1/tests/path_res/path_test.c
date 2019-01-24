@@ -26,14 +26,21 @@ int main()
   printf("res: %s\n", res);
   free(res);
 
-  char* dest = NULL;
-  char* asdf = malloc(1000 * sizeof(char));
-  sprintf(asdf, "Users/druepeters/../stuff/stuff2/../a");
-  expand_pwd(&dest, "../a");
-  printf("Original: %s\nExpanded: %s\n", "../a", dest);
-  expand_prev(&asdf);
+  char* path, *dest = NULL;
+  path = calloc(12, sizeof(char));
+  //snprintf(path, 12, "path_test.c");
+  expand_pwd(&dest, path);
+  //expand_prev(&dest);
+  printf("Original: %s\nExpanded: %s\n", path, dest);
+  printf("Is valid path: %s\t%d\n", dest, is_valid_path(dest));
+  printf("File exists: %d\n", is_file(dest));
+  printf("Dir exists: %d\n", is_dir(getenv("HOME")));
+  free(path);
   free(dest);
-  free(asdf);
+
+  path = NULL;
+
+
   return 0;
 }
 
