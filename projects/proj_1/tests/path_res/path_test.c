@@ -27,10 +27,10 @@ int main()
   free(res);
 
   char* path, *dest = NULL;
-  path = calloc(12, sizeof(char));
-  //snprintf(path, 12, "path_test.c");
-  expand_pwd(&dest, path);
-  //expand_prev(&dest);
+  path = calloc(50, sizeof(char));
+  snprintf(path, 50, "/User/druepeters/./../more_stuff/stuff/../filegc");
+  //expand_pwd(&dest, path);
+  expand_prev(&path);
   printf("Original: %s\nExpanded: %s\n", path, dest);
   printf("Is valid path: %s\t%d\n", dest, is_valid_path(dest));
   printf("File exists: %d\n", is_file(dest));

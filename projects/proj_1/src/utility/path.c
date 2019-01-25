@@ -24,39 +24,61 @@
 */
 
 static int get_num_slashes(int* buffer, int buff_size, char* str);
-static int filter_prev(int* slash_pos, int num_slash,  char* str);
+static int filter_dots(int* slash_pos, int num_slash,  char* str);
 static void rem_space(char* des, const char* src);
+void expand_shortcuts(char** p);
+void strsl(char** des, int start, int num);
+void update_slash_pos(int* slash_pos, int size, int offset, int start);
 
 char *get_path(const char* p)
 {
+  char* path = NULL;
+  enum Path_Type pt;
+  if (p && is_valid_path(p)) {
+    strcpy(path, p);
+    pt = get_path_type(path);
+    expand_shortcuts(&path);
+  }
 
+  return path;
 }
 
 bool is_valid_path(const char* path)
 {
+  bool valid_path = true;
+
   if (path == NULL) {
     printf("Invalid. path is null.\n");
-    return false;
+    valid_path = false;
   }
 
   int len = strlen(path);
   int i;
 
+  /* Check for /.. where root is proceeded by a previous directory shortcut */
   if (path[0] == '/' && path[1] == '.' && path[2] == '.'
       && ( path[3] == '/' || isspace(path[3]))) {
     printf("Invalid path. No parent of root directory.\n");
-    return false;
+    valid_path = false;
   }
 
+  /* Make sure ~ only appears at the beginning */
   for (i = 1; i < len; ++i) {
     if (path[i] == '~') {
       printf("Invalid path. ~ can only appear once at beginning of path.\n");
-      return false;
+      valid_path = false;
+    }
+
+    /* Make sure there are no double /'s */
+    if (path[i] == '/' && path[i-1] == '/') {
+      printf("Invalid path. Only only one / at a time.\n");
+      valid_path = false;
     }
   }
 
-  return true;
+  return valid_path;
 }
+
 /*
   Returns the Path_Type of p.
 */
@@ -88,7 +110,12 @@ enum Path_Type get_path_type(const char* p)
 void concat_path(const char* first, const char* sec, char** result)
 {
   /* Check for bad conditions */
-  if (first == NULL || sec == NULL) return;
+  if (first == NULL) return;
+
+  if (sec == NULL) {
+    sec = calloc(strlen(first) + 1, sizeof(char));
+  }
+
   int s1 = strlen(first);
   int s2 = strlen(sec);
   if (s1 < 1 || s2 < 1) return;
@@ -153,7 +180,7 @@ void expand_prev(char** p)
 
   printf("Original:\t%s\n", *p);
 
-  int size = filter_prev(slash_pos, num_slashes, *p);
+  int size = filter_dots(slash_pos, num_slashes, *p);
   path = calloc(size, sizeof(char));
   rem_space(path, *p);
   free(*p);
@@ -192,17 +219,27 @@ void expand_pwd(char** dest, const char* src)
 }
 
 
+/*
+  Returns true if file exists.
+  False otherwise or if p is NULL
+*/
 bool file_exists(const char* p)
 {
-  struct stat s;
-  if (stat(p, &s) != 0)
-    return 0;
-if(errno == ENOENT) {
+  bool fl_exists = true;
+  if (!p) {
+    return false;
+  } else {
+    struct stat s;
+    if (stat(p, &s) != 0) fl_exists = false;
+    if (errno == ENOENT) fl_exists = false;
   }
+  return fl_exists;
 }
 
 bool is_file(const char* p)
 {
+  if (!p) return false;
+
   struct stat s;
   if (stat(p, &s) != 0)  return 0;
   return ((s.st_mode & S_IFMT) == S_IFREG) || ((s.st_mode & S_IFMT) == S_IFDIR);
@@ -210,6 +247,8 @@ bool is_file(const char* p)
 
 bool is_dir(const char* p)
 {
+  if (!p) return false;
+
   struct stat s;
   if (stat(p, &s) != 0) return 0;
   return (s.st_mode & S_IFMT) == S_IFDIR;
@@ -236,16 +275,49 @@ int get_num_slashes(int* buffer, int buff_size, char* str)
   Accepts int array for position of slashes, number of slashes, and the original string.
   Returns the number of non-white spaces in cstring + 1.
   Replaces paths that shouldn't be there with whitespace.
+
+  *WARNING Currently does not support paths like /User/druepeters/./../
 */
-int filter_prev(int* slash_pos, int num_slash,  char* str)
+int filter_dots(int* slash_pos, int num_slash,  char* str)
 {
   int new_size = strlen(str);
   int i = 0;
-  for (i = 2; i < num_slash && i < num_slash; ++i) {
+
+
+
+  /* Works for double dot */
+  /*for (i = 2; i < num_slash; ++i) {
+    /* /......./dir/../...../ erase /dir/.. /
     if (str[slash_pos[i] -1] == '.' && str[slash_pos[i] -2] == '.') {
       memset(str + slash_pos[i-2], ' ', slash_pos[i] - slash_pos[i-2]);
       new_size = new_size - (slash_pos[i] - slash_pos[i-2]);
     }
+  } */
+
+  /* Works for single dot *
+  for (i = 2; i < num_slash; ++i) {
+    if (str[slash_pos[i] - 2] == '/' && str[slash_pos[i]-1] == '.') {
+      memset(str + slash_pos[i-1], ' ', slash_pos[i] - slash_pos[i-1]);
+      new_size = new_size - (slash_pos[i] - slash_pos[i-1]);
+    }
+  } */
+  int j;
+  for (i = 2; i < num_slash; ++i) {
+    if (str[slash_pos[i]-1] == '.' && str[slash_pos[i]-2] == '/') {
+      strsl(&str, slash_pos[i-1], slash_pos[i] - slash_pos[i-1]);
+      update_slash_pos(slash_pos, num_slash, slash_pos[i] - slash_pos[i-1], i);
+    }
+
+    if (str[slash_pos[i]-1] == '.' && str[slash_pos[i]-2] == '.') {
+      strsl(&str, slash_pos[i-2], slash_pos[i] - slash_pos[i-2]);
+      update_slash_pos(slash_pos, num_slash, slash_pos[i] - slash_pos[i-2], i);
+    }
+  }
+
+
+
+  for (i = 2; i < num_slash; ++i) {
+
   }
   return new_size + 1;
 }
@@ -265,4 +337,40 @@ void rem_space(char* des, const char* src)
     }
   }
   des[i] = '\0';
+}
+
+void expand_shortcuts(char** p)
+{
+  if (*p[0] == '~' ) {
+
+  }
+}
+
+void strsl(char** des, int start, int num)
+{
+  if (!des || !(*des) || strlen(*des) < start + num) return;
+
+  int i, size = strlen(*des);
+  for (i = start; i < size - num; ++i) {
+    (*des)[i] = (*des)[i+num];
+    (*des)[i + num] = '\0';
+  }
+  (*des)[i+num+1] = '\0';
+  printf("%s\n", *des);
+}
+
+void update_slash_pos(int* slash_pos, int size, int offset, int start)
+{
+  int i;
+  for (i = 0; i < size; ++i) {
+    printf("%d\t", slash_pos[i]);
+  }
+  printf("\n");
+  for (i = start; i < size; ++i) {
+    slash_pos[i] -= offset;
+  }
+  for (i = 0; i < size; ++i) {
+    printf("%d\t", slash_pos[i]);
+  }
+  printf("\n");
 }
