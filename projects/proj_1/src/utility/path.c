@@ -24,7 +24,7 @@
 */
 
 static int get_num_slashes(int* buffer, int buff_size, char* str);
-static int filter_dots(int* slash_pos, int num_slash,  char* str);
+static int filter_dots(char** str);
 static void rem_space(char* des, const char* src);
 void expand_shortcuts(char** p);
 void strsl(char** des, int start, int num);
@@ -172,17 +172,13 @@ void expand_prev(char** p)
 {
   if (p == NULL || *p == NULL || *(*p) == '\0') return;
   char* path = NULL;
-  int num_slashes = 0;
-  int slash_pos[50] = {0};
-
-  //int get_num_slashes(int* buffer, int buff_size, char* str)
-  num_slashes = get_num_slashes(slash_pos, 50, *p);
 
   printf("Original:\t%s\n", *p);
 
-  int size = filter_dots(slash_pos, num_slashes, *p);
-  path = calloc(size, sizeof(char));
-  rem_space(path, *p);
+  filter_dots(p);
+  printf("After filter_dots: %s\n", *p);
+  //path = calloc(size, sizeof(char));
+  //rem_space(path, *p);
   free(*p);
   *p = path;
   printf("Expanded:\t%s\n", path);
@@ -278,11 +274,20 @@ int get_num_slashes(int* buffer, int buff_size, char* str)
 
   *WARNING Currently does not support paths like /User/druepeters/./../
 */
-int filter_dots(int* slash_pos, int num_slash,  char* str)
+int filter_dots(char** str)
 {
-  int new_size = strlen(str);
+  int slash_pos[50] = {0};
+  int num_slash = get_num_slashes(slash_pos, 50, *str);
   int i = 0;
 
+  for (i = 2; i < num_slash; ++i) {
+    if (*str[slash_pos[i]-1] == '.' && *str[slash_pos[i]-2] == '/') {
+      strsl(str, slash_pos[i-1], slash_pos[i] - slash_pos[i-1]);
+      update_slash_pos(slash_pos, num_slash, slash_pos[i] - slash_pos[i-1], i);
+    }
+  }
+
+  printf("%s\n", *str);
 
 
   /* Works for double dot */
@@ -301,7 +306,7 @@ int filter_dots(int* slash_pos, int num_slash,  char* str)
       new_size = new_size - (slash_pos[i] - slash_pos[i-1]);
     }
   } */
-  int j;
+  /*int j;
   for (i = 2; i < num_slash; ++i) {
     if (str[slash_pos[i]-1] == '.' && str[slash_pos[i]-2] == '/') {
       strsl(&str, slash_pos[i-1], slash_pos[i] - slash_pos[i-1]);
@@ -311,15 +316,7 @@ int filter_dots(int* slash_pos, int num_slash,  char* str)
     if (str[slash_pos[i]-1] == '.' && str[slash_pos[i]-2] == '.') {
       strsl(&str, slash_pos[i-2], slash_pos[i] - slash_pos[i-2]);
       update_slash_pos(slash_pos, num_slash, slash_pos[i] - slash_pos[i-2], i);
-    }
-  }
-
-
-
-  for (i = 2; i < num_slash; ++i) {
-
-  }
-  return new_size + 1;
+    } */
 }
 
 /*
