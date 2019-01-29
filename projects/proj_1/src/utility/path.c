@@ -10,6 +10,12 @@
 
 #include "path.h"
 
+
+struct fpath {
+  struct list_head list;
+  char[255] file;
+}
+
 /*
   PATH_ABS is an absolute path, relative to root.
       Starts with '/'
@@ -30,8 +36,24 @@ void expand_shortcuts(char** p);
 void strsl(char** des, int start, int num);
 void update_slash_pos(int* slash_pos, int size, int offset, int start);
 
+void resolve_dots(const char* p, struct fpath* fp);
+void tokenize_path(const char* p, struct fpath* fp);
+
 char *get_path(const char* p)
 {
+  if (!p) {
+    printf("In function get_path, p is null.\n");
+    return;
+  }
+
+  if (!is_valid_path(p)) {
+    printf("In get_path, %s is not a valid path.\n", p);
+  }
+
+  struct fpath fp;
+  INIT_LIST_HEAD(&fp.list);
+
+
   char* path = NULL;
   enum Path_Type pt;
   if (p && is_valid_path(p)) {
@@ -43,6 +65,30 @@ char *get_path(const char* p)
   return path;
 }
 
+void resolve_dots(const char* p, struct fpath* fp)
+{
+  struct fpath* tmp;
+}
+
+
+void tokenize_path(const char* p, struct fpath* fp)
+{
+  char* token, *cpy, *saveptr = NULL;
+  struct fpath* tmp;
+
+  /* Copy p into cpy */
+  cpy = calloc( (strlen(p)+1), sizeof(char));
+  strcpy(cpy, line);
+
+  /* Tokenize and store each "filename" in fp */
+  token = strtok_r(cpy, " ", &saveptr);
+  while (token != NULL) {
+    tmp = malloc(sizeof(struct fpath));
+    strcpy(tmp->file, token);
+    list_add(&(tmp->list), &(fp->list));
+    token = strtok_r(NULL, " ", &saveptr);
+  }
+}
 bool is_valid_path(const char* path)
 {
   bool valid_path = true;
