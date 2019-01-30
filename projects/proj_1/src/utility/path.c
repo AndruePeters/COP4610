@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <errno.h>
-
 #include <glib.h>
 
 
@@ -25,14 +24,7 @@
       If this is a command, then check this last.
 */
 
-static int get_num_slashes(int* buffer, int buff_size, char* str);
-static int filter_dots(char** str);
-static void rem_space(char* des, const char* src);
 void expand_shortcuts(char** p);
-void strsl(char** des, int start, int num);
-void update_slash_pos(int* slash_pos, int size, int offset, int start);
-
-void resolve_dots(const char* p, GQueue* q);
 void tokenize_path(const char* p, GQueue* q);
 
 char *get_path(const char* p)
@@ -50,54 +42,36 @@ char *get_path(const char* p)
 
   GQueue* file_q = g_queue_new();
   tokenize_path(p, file_q);
-  resolve_dots(p, file_q);
-
+  g_queue_free(file_q);
   char* path = NULL;
 
   return path;
 }
 
-void resolve_dots(const char* p, GQueue* q)
-{
-  GList *it=NULL, *l = g_queue_peek_head_link(q), *rem;
-  while (l->next != NULL) {
-    if(strcmp(l->data, "..") == 0) {
-      rem = l;
-      l = l->prev;
-      printf("l->data: %s\n", l->data);
-      g_queue_unlink(q, rem);
-    }
-    l=l->next;
-  }
 
-  printf("Print q\n");
-  l = g_queue_peek_head_link(q);
-  while (l->next) {
-    printf("l->data: %s\n", l->data);
-    l=l->next;
-  }
-}
 
 
 void tokenize_path(const char* p, GQueue* q)
 {
   char* token, *cpy, *saveptr = NULL;
-  struct fpath* tmp;
+  GList* tmp;
 
   /* Copy p into cpy */
   cpy = calloc( (strlen(p)+1), sizeof(char));
   strcpy(cpy, p);
-  printf("Entering tokenize_path\n");
-
 
   /* Tokenize and store each "filename" in fp */
   token = strtok_r(cpy, "/", &saveptr);
   while (token != NULL) {
-    g_queue_push_tail(q, token);
-    printf("%s\n", (char*)g_queue_peek_tail(q));
+    /* delete the previous folder and don't add the ".." */
+    if (strcmp(token, "..") == 0) {
+      tmp = g_queue_pop_tail(q);
+
+    } else if (strcmp(token, ".") != 0) {
+      g_queue_push_tail(q, token);
+    }
     token = strtok_r(NULL, "/", &saveptr);
   }
-  printf("Exiting tokenize_path\n");
   free(cpy);
 }
 
@@ -219,28 +193,7 @@ void concat_path(const char* first, const char* sec, char** result)
   *result = res;
 }
 
-/*
-  Takes in a cstring, evaluates the parent directory symbol, and stores forms new string.
-  Works lexigraphically through removing the directory before /../.
 
-  Assumes *p has been dymanically allocated.
-  Assumes *p is the absolute path.
-*/
-void expand_prev(char** p)
-{
-  if (p == NULL || *p == NULL || *(*p) == '\0') return;
-  char* path = NULL;
-
-  printf("Original:\t%s\n", *p);
-
-  filter_dots(p);
-  printf("After filter_dots: %s\n", *p);
-  //path = calloc(size, sizeof(char));
-  //rem_space(path, *p);
-  free(*p);
-  *p = path;
-  printf("Expanded:\t%s\n", path);
-}
 
 /*
   Forms string in the form $HOME/src
@@ -306,126 +259,4 @@ bool is_dir(const char* p)
   struct stat s;
   if (stat(p, &s) != 0) return 0;
   return (s.st_mode & S_IFMT) == S_IFDIR;
-}
-
-/*
-  Accepts an int buffer to store position of slashes and size of buffer, and string.
-  Returns the number of slashes in a path and stores positions in buffer
-*/
-int get_num_slashes(int* buffer, int buff_size, char* str)
-{
-  int str_size = strlen(str);
-  int num_slashes = 0, i;
-  for (i = 0; i < str_size && num_slashes < buff_size; ++i) {
-    if (str[i] == '/') {
-      buffer[num_slashes] = i;
-      ++num_slashes;
-    }
-  }
-  return num_slashes;
-}
-
-/*
-  Accepts int array for position of slashes, number of slashes, and the original string.
-  Returns the number of non-white spaces in cstring + 1.
-  Replaces paths that shouldn't be there with whitespace.
-
-  *WARNING Currently does not support paths like /User/druepeters/./../
-*/
-int filter_dots(char** str)
-{
-  int slash_pos[50] = {0};
-  int num_slash = get_num_slashes(slash_pos, 50, *str);
-  int i = 0;
-
-  for (i = 2; i < num_slash; ++i) {
-    if (*str[slash_pos[i]-1] == '.' && *str[slash_pos[i]-2] == '/') {
-      strsl(str, slash_pos[i-1], slash_pos[i] - slash_pos[i-1]);
-      update_slash_pos(slash_pos, num_slash, slash_pos[i] - slash_pos[i-1], i);
-    }
-  }
-
-  printf("%s\n", *str);
-
-
-  /* Works for double dot */
-  /*for (i = 2; i < num_slash; ++i) {
-    /* /......./dir/../...../ erase /dir/.. /
-    if (str[slash_pos[i] -1] == '.' && str[slash_pos[i] -2] == '.') {
-      memset(str + slash_pos[i-2], ' ', slash_pos[i] - slash_pos[i-2]);
-      new_size = new_size - (slash_pos[i] - slash_pos[i-2]);
-    }
-  } */
-
-  /* Works for single dot *
-  for (i = 2; i < num_slash; ++i) {
-    if (str[slash_pos[i] - 2] == '/' && str[slash_pos[i]-1] == '.') {
-      memset(str + slash_pos[i-1], ' ', slash_pos[i] - slash_pos[i-1]);
-      new_size = new_size - (slash_pos[i] - slash_pos[i-1]);
-    }
-  } */
-  /*int j;
-  for (i = 2; i < num_slash; ++i) {
-    if (str[slash_pos[i]-1] == '.' && str[slash_pos[i]-2] == '/') {
-      strsl(&str, slash_pos[i-1], slash_pos[i] - slash_pos[i-1]);
-      update_slash_pos(slash_pos, num_slash, slash_pos[i] - slash_pos[i-1], i);
-    }
-
-    if (str[slash_pos[i]-1] == '.' && str[slash_pos[i]-2] == '.') {
-      strsl(&str, slash_pos[i-2], slash_pos[i] - slash_pos[i-2]);
-      update_slash_pos(slash_pos, num_slash, slash_pos[i] - slash_pos[i-2], i);
-    } */
-}
-
-/*
-  Copies src to des with whitespace removed.
-  des must be large enough to accomodate a null character at the end.
-*/
-void rem_space(char* des, const char* src)
-{
-  int i, j;
-  int src_sz = strlen(src);
-  for (i = j = 0; i < src_sz; ++i) {
-    if (src[i] != ' ') {
-      des[j] = src[i];
-      ++j;
-    }
-  }
-  des[i] = '\0';
-}
-
-void expand_shortcuts(char** p)
-{
-  if (*p[0] == '~' ) {
-
-  }
-}
-
-void strsl(char** des, int start, int num)
-{
-  if (!des || !(*des) || strlen(*des) < start + num) return;
-
-  int i, size = strlen(*des);
-  for (i = start; i < size - num; ++i) {
-    (*des)[i] = (*des)[i+num];
-    (*des)[i + num] = '\0';
-  }
-  (*des)[i+num+1] = '\0';
-  printf("%s\n", *des);
-}
-
-void update_slash_pos(int* slash_pos, int size, int offset, int start)
-{
-  int i;
-  for (i = 0; i < size; ++i) {
-    printf("%d\t", slash_pos[i]);
-  }
-  printf("\n");
-  for (i = start; i < size; ++i) {
-    slash_pos[i] -= offset;
-  }
-  for (i = 0; i < size; ++i) {
-    printf("%d\t", slash_pos[i]);
-  }
-  printf("\n");
 }
