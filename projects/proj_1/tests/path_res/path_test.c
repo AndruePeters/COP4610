@@ -29,6 +29,8 @@ int main()
   char* path, *dest = NULL;
   path = calloc(51, sizeof(char));
   snprintf(path, 51, "/User/druepeters/./../more_stuff/stuff/../filegc/");
+  char* p = get_path(path);
+
   //expand_pwd(&dest, path);
   expand_prev(&path);
   printf("Original: %s\nExpanded: %s\n", path, dest);

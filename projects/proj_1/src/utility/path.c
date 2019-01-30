@@ -7,14 +7,10 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include <glib.h>
+
 
 #include "path.h"
-
-
-struct fpath {
-  struct list_head list;
-  char[255] file;
-}
 
 /*
   PATH_ABS is an absolute path, relative to root.
@@ -36,59 +32,75 @@ void expand_shortcuts(char** p);
 void strsl(char** des, int start, int num);
 void update_slash_pos(int* slash_pos, int size, int offset, int start);
 
-void resolve_dots(const char* p, struct fpath* fp);
-void tokenize_path(const char* p, struct fpath* fp);
+void resolve_dots(const char* p, GQueue* q);
+void tokenize_path(const char* p, GQueue* q);
 
 char *get_path(const char* p)
 {
   if (!p) {
     printf("In function get_path, p is null.\n");
-    return;
+    return NULL;
   }
 
   if (!is_valid_path(p)) {
     printf("In get_path, %s is not a valid path.\n", p);
+    return NULL;
   }
 
-  struct fpath fp;
-  INIT_LIST_HEAD(&fp.list);
 
+  GQueue* file_q = g_queue_new();
+  tokenize_path(p, file_q);
+  resolve_dots(p, file_q);
 
   char* path = NULL;
-  enum Path_Type pt;
-  if (p && is_valid_path(p)) {
-    strcpy(path, p);
-    pt = get_path_type(path);
-    expand_shortcuts(&path);
-  }
 
   return path;
 }
 
-void resolve_dots(const char* p, struct fpath* fp)
+void resolve_dots(const char* p, GQueue* q)
 {
-  struct fpath* tmp;
+  GList *it=NULL, *l = g_queue_peek_head_link(q), *rem;
+  while (l->next != NULL) {
+    if(strcmp(l->data, "..") == 0) {
+      rem = l;
+      l = l->prev;
+      printf("l->data: %s\n", l->data);
+      g_queue_unlink(q, rem);
+    }
+    l=l->next;
+  }
+
+  printf("Print q\n");
+  l = g_queue_peek_head_link(q);
+  while (l->next) {
+    printf("l->data: %s\n", l->data);
+    l=l->next;
+  }
 }
 
 
-void tokenize_path(const char* p, struct fpath* fp)
+void tokenize_path(const char* p, GQueue* q)
 {
   char* token, *cpy, *saveptr = NULL;
   struct fpath* tmp;
 
   /* Copy p into cpy */
   cpy = calloc( (strlen(p)+1), sizeof(char));
-  strcpy(cpy, line);
+  strcpy(cpy, p);
+  printf("Entering tokenize_path\n");
+
 
   /* Tokenize and store each "filename" in fp */
-  token = strtok_r(cpy, " ", &saveptr);
+  token = strtok_r(cpy, "/", &saveptr);
   while (token != NULL) {
-    tmp = malloc(sizeof(struct fpath));
-    strcpy(tmp->file, token);
-    list_add(&(tmp->list), &(fp->list));
-    token = strtok_r(NULL, " ", &saveptr);
+    g_queue_push_tail(q, token);
+    printf("%s\n", (char*)g_queue_peek_tail(q));
+    token = strtok_r(NULL, "/", &saveptr);
   }
+  printf("Exiting tokenize_path\n");
+  free(cpy);
 }
+
 bool is_valid_path(const char* path)
 {
   bool valid_path = true;
