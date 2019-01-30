@@ -31,15 +31,9 @@ int main()
   snprintf(path, 51, "/User/druepeters/./../more_stuff/stuff/../filegc/");
   char* p = get_path(path);
 
-  //expand_pwd(&dest, path);
-  expand_prev(&path);
-  printf("Original: %s\nExpanded: %s\n", path, dest);
-  printf("Is valid path: %s\t%d\n", dest, is_valid_path(dest));
-  printf("File exists: %d\n", is_file(dest));
-  printf("Dir exists: %d\n", is_dir(getenv("HOME")));
-  free(path);
-  free(dest);
 
+  free(path);
+  free(p);
   path = NULL;
 
 
