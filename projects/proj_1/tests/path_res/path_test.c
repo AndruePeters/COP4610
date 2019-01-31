@@ -16,19 +16,10 @@ void print_path_type(enum Path_Type pt);
 void test_get_path();
 int main()
 {
-
-  //test_get_path();
-
-  char first[] = "/ab/cd/ef/";
-  char sec[] = "as";
-  char* res;
-  concat_path(first, sec, &res);
-  printf("res: %s\n", res);
-  free(res);
-
   char* path;
-  path = calloc(49, sizeof(char));
-  snprintf(path, 49, "User/druepeters/./../more_stuff/stuff/../filec/");
+  path = calloc(50, sizeof(char));
+  snprintf(path, 50, "User/druepeters/./../more_stuff/stuff/../filec/");
+  printf("Path: %s\n", path);
   char* p = get_path(path);
 
 
