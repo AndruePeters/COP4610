@@ -16,11 +16,11 @@ void print_path_type(enum Path_Type pt);
 void test_get_path();
 int main()
 {
-  char* path;
-  path = calloc(50, sizeof(char));
-  snprintf(path, 50, "User/druepeters/./../more_stuff/stuff/../filec/");
+  char f[] = "User/druepeters/./../more_stuff/stuff/../filec/";
+  char* path = strdup(f);
   printf("Path: %s\n", path);
   char* p = get_path(path);
+  printf("Final: \n\t%s\n", p);
 
 
   free(path);
