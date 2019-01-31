@@ -40,9 +40,8 @@ char *get_path(const char* p)
     return NULL;
   }
 
-  char* path = calloc(strlen(p)+1, sizeof(char));
+  char* path = strdup(p);
   GQueue* file_q = g_queue_new();
-  strcpy(path, p);
   expand_shortcuts(&path);
   tokenize_path(path, file_q);
   g_queue_free(file_q);
@@ -59,12 +58,11 @@ void expand_shortcuts(char** p)
 
   if ((*p)[0] == '~') {
     /* no +1 because omitting first character */
-    cpy = calloc(slen, sizeof(char));
-    strcpy(cpy, (*p)+1);
+    cpy = strdup(*p);
     exp = expand_home(cpy);
   } else if ((*p)[0] != '/') {
     /* Must be relative path at this point */
-    cpy = calloc(slen+1, sizeof(char));
+    cpy = strdup(*p);
     exp = expand_pwd(cpy);
   }
 
@@ -78,9 +76,9 @@ void tokenize_path(const char* p, GQueue* q)
 {
   char* token, *cpy, *saveptr = NULL;
 
+  printf("In tokenize_path, p = %s\n", p);
   /* Copy p into cpy */
-  cpy = calloc( (strlen(p)+1), sizeof(char));
-  strcpy(cpy, p);
+  cpy = strdup(p);
 
   /* Tokenize and store each "filename" in fp */
   token = strtok_r(cpy, "/", &saveptr);
