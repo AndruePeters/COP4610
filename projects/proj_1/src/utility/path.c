@@ -64,7 +64,7 @@ void expand_shortcuts(char** p)
     exp = expand_home(cpy);
   } else if ((*p)[0] != '/') {
     /* Must be relative path at this point */
-    cpy = calloc(slen, sizeof(char));
+    cpy = calloc(slen+1, sizeof(char));
     exp = expand_pwd(cpy);
   }
 
@@ -152,6 +152,8 @@ void concat_path(const char* first, const char* sec, char** result)
   int s2 = strlen(sec);
   if (s1 < 1 || s2 < 1) return;
 
+
+  printf("first: %s\nsecond: %s\n", first, sec);
   /* Result stored in res
     res_size is the size needed to store res including null
     sec_offset is used to start copying sec from either sec[0] or from sec[1]
@@ -222,7 +224,7 @@ char* expand_pwd(const char* src)
   char* pwd = getenv("PWD");
   char* exp = NULL;
   concat_path(pwd, src, &exp);
-  printf("pwd: %s\n", pwd);
+  printf("pwd: %s\nsrc %s\n", pwd, src);
   return exp;
 }
 
