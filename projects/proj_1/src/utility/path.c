@@ -26,6 +26,7 @@
 
 void expand_shortcuts(char** p);
 void tokenize_path(const char* p, GQueue* q);
+char* queue_to_string(GQueue* q);
 
 char *get_path(const char* p)
 {
@@ -39,22 +40,43 @@ char *get_path(const char* p)
     return NULL;
   }
 
-
+  char* path = calloc(strlen(p)+1, sizeof(char));
   GQueue* file_q = g_queue_new();
-  tokenize_path(p, file_q);
+  strcpy(path, p);
+  expand_shortcuts(&path);
+  tokenize_path(path, file_q);
   g_queue_free(file_q);
-  char* path = NULL;
 
   return path;
 }
 
+void expand_shortcuts(char** p)
+{
+  if (!(*p) || !(**p)) return;
 
+  char *exp = NULL, *cpy = NULL;
+  int slen = strlen(*p);
+
+  if ((*p)[0] == '~') {
+    /* no +1 because omitting first character */
+    cpy = calloc(slen, sizeof(char));
+    strcpy(cpy, (*p)+1);
+    exp = expand_home(cpy);
+  } else if ((*p)[0] != '/') {
+    /* Must be relative path at this point */
+    cpy = calloc(slen, sizeof(char));
+    exp = expand_pwd(cpy);
+  }
+
+  free(*p);
+  free(cpy);
+  *p = exp;
+}
 
 
 void tokenize_path(const char* p, GQueue* q)
 {
   char* token, *cpy, *saveptr = NULL;
-  GList* tmp;
 
   /* Copy p into cpy */
   cpy = calloc( (strlen(p)+1), sizeof(char));
@@ -63,10 +85,8 @@ void tokenize_path(const char* p, GQueue* q)
   /* Tokenize and store each "filename" in fp */
   token = strtok_r(cpy, "/", &saveptr);
   while (token != NULL) {
-    /* delete the previous folder and don't add the ".." */
     if (strcmp(token, "..") == 0) {
-      tmp = g_queue_pop_tail(q);
-
+      g_queue_pop_tail(q);
     } else if (strcmp(token, ".") != 0) {
       g_queue_push_tail(q, token);
     }
@@ -75,6 +95,9 @@ void tokenize_path(const char* p, GQueue* q)
   free(cpy);
 }
 
+/*
+  Returns true if the path is valid.
+*/
 bool is_valid_path(const char* path)
 {
   bool valid_path = true;
@@ -111,29 +134,6 @@ bool is_valid_path(const char* path)
   return valid_path;
 }
 
-/*
-  Returns the Path_Type of p.
-*/
-enum Path_Type get_path_type(const char* p)
-{
-  if (p == NULL) return PATH_ERR;
-
-  enum Path_Type pt;
-
-  if (p[0] == '/') {
-    pt = PATH_ABS;
-  } else if (p[0] == '~') {
-    pt = PATH_HOME;
-  } else if ((strlen(p) > 2) && (p[0] == '.') && (p[1] == '.')) {
-    pt = PATH_PREV;
-  } else if (*p == '\0') {
-    pt = PATH_ERR;
-  } else {
-    pt = PATH_CURR;
-  }
-
-  return pt;
-}
 
 /*
   Combines two paths and stores result in result.
@@ -142,9 +142,9 @@ enum Path_Type get_path_type(const char* p)
 void concat_path(const char* first, const char* sec, char** result)
 {
   /* Check for bad conditions */
-  if (first == NULL) return;
+  if (!first) return;
 
-  if (sec == NULL) {
+  if (!sec) {
     sec = calloc(strlen(first) + 1, sizeof(char));
   }
 
@@ -196,15 +196,15 @@ void concat_path(const char* first, const char* sec, char** result)
 
 
 /*
-  Forms string in the form $HOME/src
-  Stores in *dest
+  Returns pointer to string with $HOME expanded to form
+  string in form of $Home/src ... /User/username/src
 */
-void expand_home(char** dest, const char* src)
+char* expand_home(const char* src)
 {
   char* home = getenv("HOME");
   char* exp = NULL;
   concat_path(home, src, &exp);
-  *dest = exp;
+  return exp;
 }
 
 void expand_path(char** p)
@@ -214,15 +214,16 @@ void expand_path(char** p)
 
 
 /*
-  Forms string in the form $PWD/src.
-  Stored in *dest.
+  Returns pointer to string with $PWD expanded to form
+  string in the form of $PWD/src ... /User/username/Documents/project1/src
 */
-void expand_pwd(char** dest, const char* src)
+char* expand_pwd(const char* src)
 {
   char* pwd = getenv("PWD");
   char* exp = NULL;
   concat_path(pwd, src, &exp);
-  *dest = exp;
+  printf("pwd: %s\n", pwd);
+  return exp;
 }
 
 
@@ -234,7 +235,7 @@ bool file_exists(const char* p)
 {
   bool fl_exists = true;
   if (!p) {
-    return false;
+    fl_exists = false;
   } else {
     struct stat s;
     if (stat(p, &s) != 0) fl_exists = false;
@@ -243,6 +244,9 @@ bool file_exists(const char* p)
   return fl_exists;
 }
 
+/*
+  Returns true if path is a file. Returns false otherwise.
+*/
 bool is_file(const char* p)
 {
   if (!p) return false;
@@ -252,6 +256,9 @@ bool is_file(const char* p)
   return ((s.st_mode & S_IFMT) == S_IFREG) || ((s.st_mode & S_IFMT) == S_IFDIR);
 }
 
+/*
+  Returns true if path is directory. Returns false otherwise.
+*/
 bool is_dir(const char* p)
 {
   if (!p) return false;
