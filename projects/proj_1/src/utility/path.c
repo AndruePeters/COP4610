@@ -53,21 +53,17 @@ void expand_shortcuts(char** p)
 {
   if (!(*p) || !(**p)) return;
 
-  char *exp = NULL, *cpy = NULL;
-  int slen = strlen(*p);
+  char *exp = NULL;
 
   if ((*p)[0] == '~') {
     /* no +1 because omitting first character */
-    cpy = strdup(*p);
-    exp = expand_home(cpy);
+    exp = expand_home(*p);
   } else if ((*p)[0] != '/') {
     /* Must be relative path at this point */
-    cpy = strdup(*p);
-    exp = expand_pwd(cpy);
+    exp = expand_pwd(*p);
   }
 
   free(*p);
-  free(cpy);
   *p = exp;
 }
 
