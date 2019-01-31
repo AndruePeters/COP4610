@@ -27,6 +27,16 @@
 void expand_shortcuts(char** p);
 void tokenize_path(const char* p, GQueue* q);
 char* queue_to_string(GQueue* q);
+void print_queue(GQueue* q);
+
+void print_queue(GQueue* q) {
+  GList* walk = g_queue_peek_head_link(q);
+  while(walk) {
+    printf("%s ", walk->data);
+    walk = walk->next;
+  }
+  printf("\n");
+}
 
 char *get_path(const char* p)
 {
@@ -44,7 +54,8 @@ char *get_path(const char* p)
   GQueue* file_q = g_queue_new();
   expand_shortcuts(&path);
   tokenize_path(path, file_q);
-  g_queue_free(file_q);
+  path = queue_to_string(file_q);
+  g_queue_free_full(file_q, free);
 
   return path;
 }
@@ -70,7 +81,7 @@ void expand_shortcuts(char** p)
 
 void tokenize_path(const char* p, GQueue* q)
 {
-  char* token, *cpy, *saveptr = NULL;
+  char* token, *cpy, *saveptr = NULL, *tmp;
 
   printf("In tokenize_path, p = %s\n", p);
   /* Copy p into cpy */
@@ -80,13 +91,28 @@ void tokenize_path(const char* p, GQueue* q)
   token = strtok_r(cpy, "/", &saveptr);
   while (token != NULL) {
     if (strcmp(token, "..") == 0) {
-      g_queue_pop_tail(q);
+      free (g_queue_pop_tail(q));
     } else if (strcmp(token, ".") != 0) {
-      g_queue_push_tail(q, token);
+      tmp = strdup(token);
+      g_queue_push_tail(q, tmp);
     }
     token = strtok_r(NULL, "/", &saveptr);
   }
   free(cpy);
+}
+
+char* queue_to_string(GQueue* q)
+{
+  char* path = "/";
+  GList *walk = NULL;
+  print_queue(q);
+  walk = g_queue_peek_head_link(q);
+  while (walk) {
+    concat_path(path, walk->data, &path);
+    walk = walk->next;
+  }
+  printf("q to string: %s\n", path);
+  return path;
 }
 
 /*
@@ -99,6 +125,7 @@ bool is_valid_path(const char* path)
   if (path == NULL) {
     printf("Invalid. path is null.\n");
     valid_path = false;
+    return valid_path;
   }
 
   int len = strlen(path);
@@ -138,16 +165,14 @@ void concat_path(const char* first, const char* sec, char** result)
   /* Check for bad conditions */
   if (!first) return;
 
-  if (!sec) {
-    sec = calloc(strlen(first) + 1, sizeof(char));
-  }
+
 
   int s1 = strlen(first);
   int s2 = strlen(sec);
   if (s1 < 1 || s2 < 1) return;
 
 
-  printf("first: %s\nsecond: %s\n", first, sec);
+
   /* Result stored in res
     res_size is the size needed to store res including null
     sec_offset is used to start copying sec from either sec[0] or from sec[1]
@@ -185,7 +210,6 @@ void concat_path(const char* first, const char* sec, char** result)
   } else {
     snprintf(res, res_size, "%s%s", first, (sec + sec_offset));
   }
-
   *result = res;
 }
 
