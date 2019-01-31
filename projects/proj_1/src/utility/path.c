@@ -187,17 +187,17 @@ void concat_path(const char* first, const char* sec, char** result)
 
   /* Now we should be good to go */
   /* Check for different combinations of '/' */
-  if (first[strlen(first) - 1] == '/' && sec[0] != '/') {
-    res_size = strlen(first) + strlen(sec) + 1;
+  if (first[s1 - 1] == '/' && sec[0] != '/') {
+    res_size = s1 + s2 + 1;
     sec_offset = 0;
-  } else if (first[strlen(first) - 1] == '/' && sec[0] == '/') {
-    res_size = strlen(first) + strlen(sec) -1 + 1;
+  } else if (first[s1 - 1] == '/' && sec[0] == '/') {
+    res_size = s1+ s2-1 + 1;
     sec_offset = 1;
-  } else if (first[strlen(first) - 1] != '/' && sec[0] == '/') {
-    res_size = strlen(first) + strlen(sec) + 1;
+  } else if (first[s1- 1] != '/' && sec[0] == '/') {
+    res_size = s1+ s2 + 1;
     sec_offset = 0;
-  } else if (first[strlen(first) -1] != '/' && sec[0] != '/') {
-    res_size = strlen(first) + strlen(sec) + 1 + 1;
+  } else if (first[s1 -1] != '/' && sec[0] != '/') {
+    res_size = s1+ s2+ 1 + 1;
     sec_offset = 0;
     insert_slash = 1;
   }
@@ -210,7 +210,8 @@ void concat_path(const char* first, const char* sec, char** result)
   } else {
     snprintf(res, res_size, "%s%s", first, (sec + sec_offset));
   }
-  *result = res;
+  if (!(*result)) free((*result));
+  (*result) = res;
 }
 
 
