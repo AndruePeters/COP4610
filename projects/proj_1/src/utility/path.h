@@ -10,31 +10,72 @@
 enum Path_Type { PATH_ABS, PATH_HOME, PATH_CURR, PATH_PREV, PATH_PATH, PATH_ERR };
 
 /*
-  Returns the absolute path to a file.
-  If the path doesn't exist then returns NULL.
+  Pass in a const char* that is a file path and this returns the absolute path.
+  If any error is encountered or the path passed has errors, then it returns null.
 
-  Allocation is called in this version, so make sure you free it.
+  A successful return does not mean that the filepath exists. You still much check it
+  with is_file() or is_dir().
+
+  Make sure to free the returned pointer once you're done to avoid memory leaks.
 */
 char *get_full_path(const char* p);
 
-char* expand_shortcuts(const char* p);
 
+/*
+  Returns a string in form /home/$username/src or $HOME/src.
+  Free returned pointer when finished.
+*/
 char* expand_home(const char* src);
 
+/*
+  Doesn't do anything yet.
+  *WARNING
+*/
 void expand_path(char** p);
 
+/*
+  Returns a string in form of $PWD/src, where $PWD is expanded.
+  Free returned pointer when finished.
+*/
 char* expand_pwd(const char* src);
 
+/*
+  Returns true if file/dir exists at path p.
+  Returns false otherwise
+*/
 bool file_exists(const char* p);
 
+/*
+  Returns true if path p is a file.
+  Returns false otherwise.
+*/
 bool is_file(const char* p);
 
+/*
+  Returns true if path p is a directory.
+  Returns false otherwise.
+*/
 bool is_dir(const char* p);
 
+/*
+  Don't use this version unless you are really careful and *result has not been allocated.
+  Kept only for reference.
+*/
 void concat_path(const char* first, const char* sec, char** result);
 
+/*
+  This version is safer to use to avoid memory leaks.
+  Returns string in form "p1/p2".
+  Free returned pointer when finished.
+*/
 char* concat_path_m2(const char* p1, const char* p2);
 
+/*
+  Returns true if path appears to be valid.
+  Returns false otherwise.
+
+  Does not check if file exists or not.
+*/
 bool is_valid_path(const char* path);
 
 
