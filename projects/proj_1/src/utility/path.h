@@ -1,6 +1,7 @@
 /*
   Andrue Peters
-  Assumptions: Can free and malloc all char* arguments (aside from const char* obviously)
+
+  This file contains functions responsible for handling matters concerning filepaths.
 */
 #ifndef _GROUP15_UTILITY_PATH_H
 #define _GROUP15_UTILITY_PATH_H
@@ -76,40 +77,4 @@ char* concat_path_m2(const char* p1, const char* p2);
   Does not check if file exists or not.
 */
 bool is_valid_path(const char* path);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #endif

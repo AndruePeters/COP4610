@@ -11,50 +11,39 @@
 
 #include "path.h"
 
+/* Dumps all data from a GQueue * */
+static void print_queue(GQueue* q);
+
+/* Checks to see if pointer is null before it is freed */
+static void safe_free(void *ptr);
+
 /*
-  PATH_ABS is an absolute path, relative to root.
-      Starts with '/'
-  PATH_HOME is a path relative to $HOME directory.
-      Starts with '~'
-  PATH_CURR is a path relative to $PWD
-      Starts with '.' or nothing.
-  PATH_PREV is a path relative to previous directory.
-      Starts with '..'
-  PATH_PATH is a path relative to $PATH
-      If this is a command, then check this last.
+  Handles expanding shortcuts like ~ and pwd and returns a concatenation of
+  said shortcut and p.
 */
+static char* expand_shortcuts(const char* p);
+
+/*
+  Separates strtok_r with '/' as a delimiter.
+  Stores tokens in a GQueue struct.
+*/
+static void tokenize_path(const char* p, GQueue* q);
+
+/*
+  Converts a GQueue* object to a c string.
+*/
+static char* queue_to_string(GQueue* q);
+
+/*
+  Frees all allocated data in GQueue struct.
+  Does not unlink nodes.
+*/
+static void free_queue_data(GQueue* q);
 
 
-void tokenize_path(const char* p, GQueue* q);
-char* queue_to_string(GQueue* q);
-void free_queue_data(GQueue* q);
-
-void print_queue(GQueue* q);
-
-void safe_free(void *ptr);
-void safe_free(void *ptr)
-{
-  if(ptr) free(ptr);
-}
-
-void print_queue(GQueue* q) {
-  GList* walk = g_queue_peek_head_link(q);
-  while(walk) {
-    printf("%s ", walk->data);
-    walk = walk->next;
-  }
-  printf("\n");
-}
-
-void free_queue_data(GQueue* q)
-{
-  GList* walk;
-  walk = g_queue_peek_head_link(q);
-  while (walk) {
-    if(walk->data) free(walk->data);
-    walk = walk->next;
-  }
-}
+/*
+  Returns absolute path from p.
+*/
 char *get_full_path(const char* p)
 {
   if (!p) {
@@ -81,6 +70,10 @@ char *get_full_path(const char* p)
   return path;
 }
 
+/*
+  Handles expanding shortcuts like ~ and pwd and returns a concatenation of
+  said shortcut and p.
+*/
 char* expand_shortcuts(const char* p)
 {
   if (!p) return NULL;
@@ -98,7 +91,10 @@ char* expand_shortcuts(const char* p)
   return exp;
 }
 
-
+/*
+  Separates strtok_r with '/' as a delimiter.
+  Stores tokens in a GQueue struct.
+*/
 void tokenize_path(const char* p, GQueue* q)
 {
   char* token, *cpy, *saveptr = NULL, *tmp;
@@ -121,6 +117,9 @@ void tokenize_path(const char* p, GQueue* q)
   free(cpy);
 }
 
+/*
+  Converts a GQueue* object to a c string.
+*/
 char* queue_to_string(GQueue* q)
 {
   char* path = calloc(2, sizeof(char));
@@ -179,6 +178,11 @@ bool is_valid_path(const char* path)
   return valid_path;
 }
 
+/*
+  concat_path_ method 2.
+  This method was written because the first easily introduced memory leaks into the program.
+  concats p1 and p2 together, accounting for position of slashes in string.
+*/
 char* concat_path_m2(const char* p1, const char* p2)
 {
   if (!p1 && !p2) return NULL;
@@ -222,7 +226,8 @@ char* concat_path_m2(const char* p1, const char* p2)
 
 /*
   Combines two paths and stores result in result.
-  Note that memory is allocated in result, so make sure it is freed when done
+  Note that memory is allocated in result, so make sure it is freed when done.
+  Only used for reference. Easily causes memory leaks.
 */
 void concat_path(const char* first, const char* sec, char** result)
 {
@@ -232,9 +237,6 @@ void concat_path(const char* first, const char* sec, char** result)
   int s1 = strlen(first);
   int s2 = strlen(sec);
   if (s1 < 1 || s2 < 1) return;
-
-
-
 
   /* Result stored in res
     res_size is the size needed to store res including null
@@ -291,6 +293,9 @@ char* expand_home(const char* src)
   return exp;
 }
 
+/*
+  Doesn't currently do anything.
+*/
 void expand_path(char** p)
 {
 
@@ -300,6 +305,8 @@ void expand_path(char** p)
 /*
   Returns pointer to string with $PWD expanded to form
   string in the form of $PWD/src ... /User/username/Documents/project1/src
+
+  Free returned pointer when done.
 */
 char* expand_pwd(const char* src)
 {
@@ -349,4 +356,38 @@ bool is_dir(const char* p)
   struct stat s;
   if (stat(p, &s) != 0) return 0;
   return (s.st_mode & S_IFMT) == S_IFDIR;
+}
+
+/*
+  Only calls free on ptr if ptr != NULL
+*/
+void safe_free(void *ptr)
+{
+  if(ptr) free(ptr);
+}
+
+/*
+  Dumps all data in GQueue data structure.
+*/
+void print_queue(GQueue* q) {
+  GList* walk = g_queue_peek_head_link(q);
+  while(walk) {
+    printf("%s ", walk->data);
+    walk = walk->next;
+  }
+  printf("\n");
+}
+
+/*
+  Frees all allocated memory in GQueue*.
+  Does not unlink elements and free the node itself.
+*/
+void free_queue_data(GQueue* q)
+{
+  GList* walk;
+  walk = g_queue_peek_head_link(q);
+  while (walk) {
+    if(walk->data) free(walk->data);
+    walk = walk->next;
+  }
 }
