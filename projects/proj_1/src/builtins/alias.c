@@ -40,6 +40,74 @@ void terminate_alias()
 }
 
 /*
+  Accepts and processes arguments after alias.
+
+  Project description says command will only be given in the form "alias alias_name='alias'
+*/
+void alias(const char* c)
+{
+  if (!c) {
+
+  }
+
+  int name_start_pos=0, name_end_pos=0;
+  int alias_start_pos=0, alias_end_pos=0;
+  int key_size = 0, val_size=0;
+  int len = strlen(c);
+  int i = 0;
+  char* key, *val;
+
+  /* Find first alphanumeric character */
+  for (i = 0; i < len; ++i) {
+    if (isalnum(c[i])) {
+      name_start_pos = i;
+      break;
+    }
+  }
+
+  /* Find last alaphanumeric character that's part of the alias name */
+  for (i = name_start_pos; i < len; ++i) {
+    if (c[i] == '=') {
+      name_end_pos = i;
+      break;
+    }
+  }
+
+  /* Find the first character that's part of the actual alias */
+  for (i = name_end_pos; i < len; ++i) {
+    if (c[i] == '\'' || c[i] == '\"') {
+      alias_start_pos = i+1;
+      break;
+    }
+  }
+
+  /* Find the last character that's part of the actual alias */
+  for (i = len-1; i > alias_start_pos; ++i) {
+    if (c[i] == '\'' || c[i] == '\"') {
+      alias_end_pos = i;
+      printf("alias_end_pos char: %c\n", c[i]);
+      break;
+    }
+  }
+
+  key_size = name_end_pos - name_start_pos;
+  val_size = alias_end_pos - alias_start_pos;
+  key = calloc(key_size + 1, sizeof(char));
+  val = calloc(val_size + 1, sizeof(char));
+
+
+  strncpy(key, c+name_start_pos, key_size);
+  strncpy(val, c+alias_start_pos, val_size);
+  key[key_size] = '\0';
+  val[val_size] = '\0';
+
+
+  add_alias(key, val);
+  free(key);
+  free(val);
+}
+
+/*
   Returns true if key is found in hashtable. False otherwise.
   This relies on glib 2.32.
 */
@@ -95,5 +163,7 @@ void dump_alias()
 
 void destory_key_val(gpointer c)
 {
-  if(c) free(c);
+  if(c) {
+    free(c);
+  }
 }
