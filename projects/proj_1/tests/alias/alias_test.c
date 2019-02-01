@@ -8,15 +8,37 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void test_add_alias();
+void test_alias();
 
 int main()
 {
   init_alias();
-  test_add_alias();
+  //test_add_alias();
+  test_alias();
   dump_alias();
+  terminate_alias();
   return 0;
+}
+
+void test_alias()
+{
+    char command[200];
+    char alias_var[200];
+    bool should_exit = false;
+
+    do {
+      printf("Enter your command: ");
+      scanf("%s %s", command, alias_var);
+      printf("You entered %s %s\n", command, alias_var);
+
+      if (strcmp(command, "exit") == 0) break;
+      else {
+        alias(alias_var);
+      }
+    } while (!should_exit);
 }
 
 void test_add_alias()
