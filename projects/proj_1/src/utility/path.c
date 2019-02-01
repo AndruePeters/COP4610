@@ -55,15 +55,15 @@ void free_queue_data(GQueue* q)
     walk = walk->next;
   }
 }
-char *get_path(const char* p)
+char *get_full_path(const char* p)
 {
   if (!p) {
-    printf("In function get_path, p is null.\n");
+    printf("In function get_full_path, p is null.\n");
     return NULL;
   }
 
   if (!is_valid_path(p)) {
-    printf("In get_path, %s is not a valid path.\n", p);
+    printf("In get_full_path, %s is not a valid path.\n", p);
     return NULL;
   }
 

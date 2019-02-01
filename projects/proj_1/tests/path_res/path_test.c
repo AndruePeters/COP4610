@@ -20,7 +20,7 @@ int main()
   char rel[] = "/project/tests/test.c";
   char* path = strdup(f);
   printf("Path: %s\n", path);
-  char* p = get_path(path);
+  char* p = get_full_path(path);
   printf("Final: \n\t%s\n", p);
 
 

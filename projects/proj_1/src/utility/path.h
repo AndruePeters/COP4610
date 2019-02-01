@@ -15,7 +15,7 @@ enum Path_Type { PATH_ABS, PATH_HOME, PATH_CURR, PATH_PREV, PATH_PATH, PATH_ERR 
 
   Allocation is called in this version, so make sure you free it.
 */
-char *get_path(const char* p);
+char *get_full_path(const char* p);
 
 char* expand_shortcuts(const char* p);
 
