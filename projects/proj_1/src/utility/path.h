@@ -7,7 +7,6 @@
 
 #include <stdbool.h>
 
-enum Path_Type { PATH_ABS, PATH_HOME, PATH_CURR, PATH_PREV, PATH_PATH, PATH_ERR };
 
 /*
   Pass in a const char* that is a file path and this returns the absolute path.
