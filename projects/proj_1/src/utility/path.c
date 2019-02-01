@@ -24,10 +24,18 @@
       If this is a command, then check this last.
 */
 
-void expand_shortcuts(char** p);
+
 void tokenize_path(const char* p, GQueue* q);
 char* queue_to_string(GQueue* q);
+void free_queue_data(GQueue* q);
+
 void print_queue(GQueue* q);
+
+void safe_free(void *ptr);
+void safe_free(void *ptr)
+{
+  if(ptr) free(ptr);
+}
 
 void print_queue(GQueue* q) {
   GList* walk = g_queue_peek_head_link(q);
@@ -38,6 +46,15 @@ void print_queue(GQueue* q) {
   printf("\n");
 }
 
+void free_queue_data(GQueue* q)
+{
+  GList* walk;
+  walk = g_queue_peek_head_link(q);
+  while (walk) {
+    if(walk->data) free(walk->data);
+    walk = walk->next;
+  }
+}
 char *get_path(const char* p)
 {
   if (!p) {
@@ -50,32 +67,35 @@ char *get_path(const char* p)
     return NULL;
   }
 
-  char* path = strdup(p);
+  char* path = strdup(p), *path_bak=path;
   GQueue* file_q = g_queue_new();
-  expand_shortcuts(&path);
+  path = expand_shortcuts(path);
+  safe_free(path_bak);
+  path_bak = path;
   tokenize_path(path, file_q);
   path = queue_to_string(file_q);
-  g_queue_free_full(file_q, free);
+  free_queue_data(file_q);
+  g_queue_free(file_q);
 
+  safe_free(path_bak);
   return path;
 }
 
-void expand_shortcuts(char** p)
+char* expand_shortcuts(const char* p)
 {
-  if (!(*p) || !(**p)) return;
+  if (!p) return NULL;
 
-  char *exp = NULL;
+  char *exp=NULL;
 
-  if ((*p)[0] == '~') {
+  if (p[0] == '~') {
     /* no +1 because omitting first character */
-    exp = expand_home(*p);
-  } else if ((*p)[0] != '/') {
+    exp = expand_home(p);
+  } else if (p[0] != '/') {
     /* Must be relative path at this point */
-    exp = expand_pwd(*p);
+    exp = expand_pwd(p);
   }
 
-  free(*p);
-  *p = exp;
+  return exp;
 }
 
 
@@ -103,12 +123,16 @@ void tokenize_path(const char* p, GQueue* q)
 
 char* queue_to_string(GQueue* q)
 {
-  char* path = "/";
+  char* path = calloc(2, sizeof(char));
+  char* path_bak = NULL;
   GList *walk = NULL;
-  print_queue(q);
+  path[0] = '/'; path[1] = '\0';
+
   walk = g_queue_peek_head_link(q);
   while (walk) {
-    concat_path(path, walk->data, &path);
+    path_bak = path;
+    path = concat_path_m2(path, walk->data);
+    safe_free(path_bak);
     walk = walk->next;
   }
   printf("q to string: %s\n", path);
@@ -155,6 +179,46 @@ bool is_valid_path(const char* path)
   return valid_path;
 }
 
+char* concat_path_m2(const char* p1, const char* p2)
+{
+  if (!p1 && !p2) return NULL;
+  int s1 = strlen(p1);
+  int s2 = strlen(p2);
+
+  char *res = NULL;
+  int res_size = 0;
+  int sec_offset = 0;
+  bool insert_slash = 0;
+
+
+    /* Now we should be good to go */
+    /* Check for different combinations of '/' */
+    if (p1[s1 - 1] == '/' && p2[0] != '/') {
+      res_size = s1 + s2 + 1;
+      sec_offset = 0;
+    } else if (p1[s1 - 1] == '/' && p2[0] == '/') {
+      res_size = s1+ s2-1 + 1;
+      sec_offset = 1;
+    } else if (p1[s1- 1] != '/' && p2[0] == '/') {
+      res_size = s1+ s2 + 1;
+      sec_offset = 0;
+    } else if (p1[s1 -1] != '/' && p2[0] != '/') {
+      res_size = s1+ s2+ 1 + 1;
+      sec_offset = 0;
+      insert_slash = 1;
+    }
+
+    res = calloc(res_size, sizeof(char));
+
+    /* This means we need to insert a '/' in between the strings */
+    if (insert_slash) {
+      snprintf(res, res_size, "%s/%s", p1, p2);
+    } else {
+      snprintf(res, res_size, "%s%s", p1, (p2 + sec_offset));
+    }
+
+    return res;
+}
 
 /*
   Combines two paths and stores result in result.
@@ -163,13 +227,12 @@ bool is_valid_path(const char* path)
 void concat_path(const char* first, const char* sec, char** result)
 {
   /* Check for bad conditions */
-  if (!first) return;
-
-
+  if (!first && !sec) return;
 
   int s1 = strlen(first);
   int s2 = strlen(sec);
   if (s1 < 1 || s2 < 1) return;
+
 
 
 
@@ -180,7 +243,7 @@ void concat_path(const char* first, const char* sec, char** result)
                                   first = "asdf" and sec = "/asdf"; Simple way to remove extra '/'
       In the first case it combines to be "asdf/asdf" and the second case "asdf/asdf".
   */
-  char* res;
+  char* res = NULL;
   int res_size = 0;
   int sec_offset = 0;
   bool insert_slash = 0;
@@ -224,7 +287,7 @@ char* expand_home(const char* src)
 {
   char* home = getenv("HOME");
   char* exp = NULL;
-  concat_path(home, src, &exp);
+  exp = concat_path_m2(home, src);
   return exp;
 }
 
@@ -242,8 +305,7 @@ char* expand_pwd(const char* src)
 {
   char* pwd = getenv("PWD");
   char* exp = NULL;
-  concat_path(pwd, src, &exp);
-  printf("pwd: %s\nsrc %s\n", pwd, src);
+  exp = concat_path_m2(pwd, src);
   return exp;
 }
 
