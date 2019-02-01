@@ -17,15 +17,18 @@ void test_get_path();
 int main()
 {
   char f[] = "User/druepeters/./../more_stuff/stuff/../filec/";
+  char rel[] = "/project/tests/test.c";
   char* path = strdup(f);
   printf("Path: %s\n", path);
   char* p = get_path(path);
   printf("Final: \n\t%s\n", p);
 
 
+
   free(path);
   free(p);
   path = NULL;
+  p = NULL;
 
 
   return 0;
