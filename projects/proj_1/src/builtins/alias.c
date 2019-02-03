@@ -108,9 +108,26 @@ void alias(const char* c)
 }
 
 
+/*
+  Removes alias c if it exists.
+*/
 void unalias(const char* c)
 {
   rem_alias(c);
+}
+
+/*
+  Returns a const pointer to the alias if it exists.
+
+  *Warning: Exposes address of val. Fix in future when you have more time.
+*/
+const char* expand_alias(const char* c)
+{
+  char* ret = NULL;
+  if (exists_alias(c)) {
+    ret = g_hash_table_lookup (alias_table, c);
+  }
+  return ret;
 }
 /*
   Returns true if key is found in hashtable. False otherwise.
