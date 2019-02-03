@@ -8,7 +8,7 @@
 #ifndef _GROUP12_SHELL_H_
 #define _GROUP12_SHELL_H_
 
-
+char* get_line();
 
 
 
