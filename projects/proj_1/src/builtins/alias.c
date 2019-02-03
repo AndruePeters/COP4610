@@ -43,6 +43,7 @@ void terminate_alias()
   Accepts and processes arguments after alias.
 
   Project description says command will only be given in the form "alias alias_name='alias'
+  Could shorten code, but this works well and only makes one pass through the string.
 */
 void alias(const char* c)
 {
