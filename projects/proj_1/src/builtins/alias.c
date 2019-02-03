@@ -107,6 +107,11 @@ void alias(const char* c)
   free(val);
 }
 
+
+void unalias(const char* c)
+{
+  rem_alias(c);
+}
 /*
   Returns true if key is found in hashtable. False otherwise.
   This relies on glib 2.32.
