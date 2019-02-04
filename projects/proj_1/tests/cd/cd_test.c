@@ -5,7 +5,7 @@
 
 #include <builtins/cd.h>
 #include <builtins/cd.c>
-#include <shared.h>
+#include <builtins/shell_data.h>
 
 #include <stdio.h>
 #include <stdlib.h>
