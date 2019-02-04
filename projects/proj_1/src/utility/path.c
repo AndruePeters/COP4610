@@ -86,6 +86,8 @@ char* expand_shortcuts(const char* p)
   } else if (p[0] != '/') {
     /* Must be relative path at this point */
     exp = expand_pwd(p);
+  } else {
+    exp = strdup(p);
   }
 
   return exp;
@@ -390,4 +392,20 @@ void free_queue_data(GQueue* q)
     if(walk->data) free(walk->data);
     walk = walk->next;
   }
+}
+
+/*
+  Returns true if there were no environmental variables or all found were present.
+  If all environmental variables exist, then the expanded path is stored in dest.
+  If no environmental variables exist, then dest is a copy of src, but must be freed.
+
+  Returns false if src is NULL, or an incorrect environmental variable is found.
+
+  If an incorrect environmental variable was found, then dest == NULL.
+*/
+bool expand_env(char *dest, const char *src)
+{
+  if (!src) return false;
+
+
 }
