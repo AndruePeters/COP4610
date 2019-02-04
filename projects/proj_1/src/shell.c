@@ -1,5 +1,6 @@
 /*
   Andrue Peters
+  https://www.geeksforgeeks.org/c-program-replace-word-text-another-given-word/
 */
 
 #include <stdio.h>
@@ -7,14 +8,23 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
-
+#include <unistd.h>
 #include <glib.h>
+
+#include <builtins/shell_data.h>
+#include <builtins/shell_data.c>
+
+
 #include "shell.h"
 
 int main()
 {
   char* line = NULL;
+  struct shell_data sd;
+
+  shell_data_init(&sd);
   while (1) {
+    display_prompt(&sd);
     line = get_line();
     printf("You entered: %s\n\n\n", line);
     free(line);
@@ -80,4 +90,11 @@ bool expand_env(char **dest, const char *src)
   }
   *dest = exp;
   printf("expanded: %s\n", exp);
+}
+
+void display_prompt(struct shell_data *sd)
+{
+  static char hostname[200];
+  gethostname(hostname, 200);
+  printf("%s@%s:%s$ ", getenv("USER"), hostname, sd->pwd);
 }
