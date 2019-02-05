@@ -14,6 +14,8 @@
 #include <builtins/shell_data.h>
 #include <builtins/shell_data.c>
 
+#include <utility/path.h>
+#include <utility/path.c>
 
 #include "shell.h"
 
@@ -52,49 +54,19 @@ char* get_line()
 
   line = realloc(line, (pos+1) * sizeof(char));
   line[pos] = '\0';
-  char* exp;
-  expand_env(&exp, line);
-  printf("exp: %s\n", exp);
+  char* exp = expand_env(line);
+  if (exp) {
+    free(line);
+    line = exp;
+  }
   return line;
 }
 
-bool expand_env(char **dest, const char *src)
-{
-  int i = 0, j=0,
-      env_start = 0,
-      env_end = 0;
-  bool is_env = false;
-  char *exp = calloc(200, sizeof(char)),
-       *env_tok = calloc(200, sizeof(char));
 
-  while (src[i] != '\0') {
-    if (src[i] == '$') {
-      is_env = true;
-      env_start = i+1;
-    }
-
-    if (is_env) {
-      if (isspace(src[i]) || src[i] == '\0' || src[i] == '$') {
-        env_end = i;
-        strncpy(env_tok, src+env_start, env_end - env_start);
-        printf("env_tok: %s\n", env_tok);
-        printf("env expand: %s\n", getenv(env_tok));
-        is_env = false;
-
-      }
-    } else {
-      exp[j] = src[i];
-      ++j;
-    }
-    ++i;
-  }
-  *dest = exp;
-  printf("expanded: %s\n", exp);
-}
 
 void display_prompt(struct shell_data *sd)
 {
-  static char hostname[200];
-  gethostname(hostname, 200);
+  static char hostname[255];
+  gethostname(hostname, 255);
   printf("%s@%s:%s$ ", getenv("USER"), hostname, sd->pwd);
 }

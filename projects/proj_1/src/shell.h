@@ -15,7 +15,6 @@ char* get_line();
 void display_prompt(struct shell_data *sd);
 void process_input(const char* input);
 
-bool expand_env(char **dest, const char *src);
 
 
 
