@@ -81,5 +81,7 @@ bool is_valid_path(const char* path);
 /*
   Returns a string with all environmental variables expanded.
 */
-bool expand_env(char *dest, const char *src);
+char* expand_env(const char *src);
+
+
 #endif

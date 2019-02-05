@@ -40,6 +40,26 @@ static char* queue_to_string(GQueue* q);
 */
 static void free_queue_data(GQueue* q);
 
+/*
+  Gets the number of environmental variables present.
+  Determined based on number of '$', so maybe not 100% accurate.
+*/
+static int get_num_env(const char* src);
+
+/*
+  Returns a dynamically allocated string that returns substring of name of
+  environmental variable. num_char is the size of the string. It could be omitted,
+  but I wrote this late at night and it makes it easy to advance string appropriate number
+  of times.
+
+
+  For const char* c=cd $USER/Documents, int i;
+  char* x = strenvstr(c, i),
+  x would display "USER", and i would be 4.
+
+*/
+
+static char* strenvstr(const char* c, int *num_char);
 
 /*
   Returns absolute path from p.
@@ -374,7 +394,7 @@ void safe_free(void *ptr)
 void print_queue(GQueue* q) {
   GList* walk = g_queue_peek_head_link(q);
   while(walk) {
-    printf("%s ", walk->data);
+    printf("%s ", (char*)walk->data);
     walk = walk->next;
   }
   printf("\n");
@@ -394,18 +414,85 @@ void free_queue_data(GQueue* q)
   }
 }
 
-/*
-  Returns true if there were no environmental variables or all found were present.
-  If all environmental variables exist, then the expanded path is stored in dest.
-  If no environmental variables exist, then dest is a copy of src, but must be freed.
-
-  Returns false if src is NULL, or an incorrect environmental variable is found.
-
-  If an incorrect environmental variable was found, then dest == NULL.
-*/
-bool expand_env(char *dest, const char *src)
+int get_num_env(const char* src)
 {
-  if (!src) return false;
+  int i, len = strlen(src), num_env=0;;
+  for (i=0; i < len; ++i) {
+    if (src[i] == '$') { ++num_env;}
+  }
+  return num_env;
+}
 
+/*
+  Refactor auto growing string code in the future.
+*/
+char * expand_env(const char* src)
+{
+  char* res, *tmp, *env, *tmp2;
+  int i, num_env =0, cter=0;
+  int cap = 2 * strlen(src);
 
+  num_env = get_num_env(src);
+  res = env = calloc(cap, sizeof(char));
+
+  i = 0;
+  while (*src) {
+    if (*src == '$') {
+      tmp = strenvstr(src+1, &i);
+      tmp2 = getenv(tmp);
+
+      /* tmp2 is null if environmental var doesn't exist */
+      if (!tmp2) {
+        fprintf(stderr, "Environmental variable does not exist.\n");
+        return NULL;
+      }
+
+      /* resize if need be and then update the position of env */
+      if (cap < strlen(res) + strlen(tmp2)) {
+        cap *= 2;
+        res = realloc(res, cap);
+        env = &res[cter];
+      }
+
+      strncpy(env, tmp2, i);
+      free(tmp);
+      env += i;
+      src += i;
+      ++num_env;
+    } else {
+      if (cap < strlen(res) + cter + 1) {
+        cap *= 2;
+        res = realloc(res, cap);
+        env = &res[cter];
+      }
+      *env++ = *src;
+    }
+    ++cter;
+    ++src;
+  }
+
+  return res;
+}
+
+/*
+  Starts at *c and returns copy of string to next delimter
+*/
+char* strenvstr(const char* c, int *num_char)
+{
+  char* bak = c;
+  char* nwstr = NULL;
+  int numchar = 0;
+  while(c++) {
+    if (!(isspace(*c) || *c == '$' || *c == '/' || *c == '\0')) {
+        ++numchar;
+    } else {
+      ++numchar;
+      nwstr = calloc(numchar + 1, sizeof(char));
+      strncpy(nwstr, bak, numchar);
+      nwstr[numchar] = '\0';
+      break;
+    }
+  }
+  *num_char = numchar;
+  return nwstr;
 }
