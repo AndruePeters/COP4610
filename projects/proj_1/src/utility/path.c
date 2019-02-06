@@ -439,12 +439,12 @@ char * expand_env(const char* src)
   while (*src) {
     if (*src == '$') {
       tmp = strenvstr(src+1, &i);
-      printf("tmp:%s\t", tmp);
       tmp2 = getenv(tmp);
       free(tmp);
+
       /* tmp2 is null if environmental var doesn't exist */
       if (!tmp2) {
-        fprintf(stderr, "Environmental variable does not exist.\n");
+        free(res);
         return NULL;
       }
 
@@ -481,7 +481,7 @@ char * expand_env(const char* src)
 */
 char* strenvstr(const char* c, int *num_char)
 {
-  char* bak = c;
+  const char* bak = c;
   char* nwstr = NULL;
   int numchar = 0;
   while(c++) {
