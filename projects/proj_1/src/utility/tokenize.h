@@ -2,8 +2,8 @@
   Tokenizes a string.
   Based on code provided by TA for project 1.
 */
-#ifndef _GROUP12_UTILITY_TOKENIZE_H_
-#define _GROUP12_UTILITY_TOKENIZE_H_
+#ifndef _GROUP15_UTILITY_TOKENIZE_H_
+#define _GROUP15_UTILITY_TOKENIZE_H_
 
 
 
