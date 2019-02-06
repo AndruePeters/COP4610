@@ -430,7 +430,7 @@ char * expand_env(const char* src)
 {
   char* res, *tmp, *env, *tmp2;
   int i, num_env =0, cter=0;
-  int cap = 2 * strlen(src);
+  int cap = 4096;
 
   num_env = get_num_env(src);
   res = env = calloc(cap, sizeof(char));
@@ -439,8 +439,9 @@ char * expand_env(const char* src)
   while (*src) {
     if (*src == '$') {
       tmp = strenvstr(src+1, &i);
+      printf("tmp:%s\t", tmp);
       tmp2 = getenv(tmp);
-
+      free(tmp);
       /* tmp2 is null if environmental var doesn't exist */
       if (!tmp2) {
         fprintf(stderr, "Environmental variable does not exist.\n");
@@ -448,22 +449,22 @@ char * expand_env(const char* src)
       }
 
       /* resize if need be and then update the position of env */
-      if (cap < strlen(res) + strlen(tmp2)) {
-        cap *= 2;
+      if (cap < strlen(res) + strlen(tmp2) + 1) {
+        cap = 2 * (strlen(res) + strlen(tmp2));
         res = realloc(res, cap);
-        env = &res[cter];
+        env = &res[cter-1];
       }
 
-      strncpy(env, tmp2, i);
-      free(tmp);
-      env += i;
+      strncpy(env, tmp2, strlen(tmp2));
+      env += strlen(tmp2);
       src += i;
+      cter += strlen(tmp2);
       ++num_env;
     } else {
       if (cap < strlen(res) + cter + 1) {
         cap *= 2;
         res = realloc(res, cap);
-        env = &res[cter];
+        env = &res[cter-1];
       }
       *env++ = *src;
     }
@@ -471,6 +472,7 @@ char * expand_env(const char* src)
     ++src;
   }
 
+  res = realloc(res, strlen(res) + 1);
   return res;
 }
 
