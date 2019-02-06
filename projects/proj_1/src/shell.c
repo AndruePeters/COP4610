@@ -12,10 +12,16 @@
 #include <glib.h>
 
 #include <builtins/shell_data.h>
-#include <builtins/shell_data.c>
+#include <builtins/cd.h>
+#include <builtins/alias.h>
+#include <builtins/echo.h>
+
+
 
 #include <utility/path.h>
-#include <utility/path.c>
+#include <utility/tokenize.h>
+
+bool my_exec(struct shell_data *sd, struct instruction* instr);
 
 #include "shell.h"
 
@@ -23,13 +29,24 @@ int main()
 {
   char* line = NULL;
   struct shell_data sd;
+  struct instruction instr;
 
   shell_data_init(&sd);
+  instr.tokens = NULL;
+  instr.num_tokens = 0;
+
+  init_alias();
+
   while (1) {
     display_prompt(&sd);
     line = get_line();
-    printf("You entered: %s\n\n\n", line);
+
+    if (!line) continue;
+    add_tokens(&instr, line);
+
+
     free(line);
+
 
   }
 
@@ -62,7 +79,10 @@ char* get_line()
   return line;
 }
 
+bool my_exec(struct shell_data *sd, struct instruction* instr)
+{
 
+}
 
 void display_prompt(struct shell_data *sd)
 {
