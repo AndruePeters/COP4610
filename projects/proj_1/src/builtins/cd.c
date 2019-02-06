@@ -3,7 +3,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <utility/path.h>
-#include <utility/path.c>
 
 #include "cd.h"
 
