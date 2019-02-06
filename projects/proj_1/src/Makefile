@@ -1,15 +1,19 @@
 CC=gcc
-CFLAGS= -Wall -g -o shell.out  -lglib-2.0
+CFLAGS= -Wall -g `pkg-config --cflags  glib-2.0` -I.
 
-SRC_PATH=.
+src = $(wildcard *.c) \
+			 $(wildcard builtins/*.c) \
+			 $(wildcard utility/*.c)
 
-INC=-I$(SRC_PATH) -I. -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
+obj = $(src:.c=.o)
+LDFLAGS = `pkg-config --libs glib-2.0`
+
+
 
 all: clean my_shell
 
-my_shell: shell.c
-	gcc $(CFLAGS) $(INC) shell.c
-	chmod +x shell.out
+my_shell: $(obj)
+	$(CC)  $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	- rm *.out *.o
+	- rm -f $(obj) my_shell
