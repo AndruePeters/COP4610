@@ -8,6 +8,7 @@
 #ifndef _GROUP12_SHELL_H_
 #define _GROUP12_SHELL_H_
 
+#include <glib.h>
 #include <stdbool.h>
 #include <builtins/shell_data.h>
 
@@ -34,13 +35,14 @@ struct cmd {
 
 struct cmd_queue {
   GQueue* cq;
-}
+};
 
 char* get_line();
 void display_prompt(struct shell_data *sd);
 void process_input(const char* input);
 
-
+void init_cmd_queue(struct cmd_queue *cq);
+void add_cmd(struct cmd_queue *cq, struct cmd *c);
 
 
 

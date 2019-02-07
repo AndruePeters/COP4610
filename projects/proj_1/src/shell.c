@@ -22,18 +22,23 @@
 #include <utility/path.h>
 #include <utility/tokenize.h>
 
+#include "shell.h"
+
 int my_exec(struct shell_data *sd, struct instruction* instr, char **cmd);
 void init_builtin_function_pointer();
-void load_cmdQ(GQueue *cmdQ, struct instructions *instr);
+void add_arg(struct cmd *cm, const char *c);
+//void load_cmdQ(GQueue *cmdQ, struct instruction *instr);
 
 static GHashTable* builtins_table;
-static GQueue *cmdQ;
+static struct cmd_queue cmdQ;
 
-#include "shell.h"
+
 
 int main()
 {
   init_builtin_function_pointer();
+  init_cmd_queue(&cmdQ);
+
   char* line = NULL;
   struct shell_data sd;
   struct instruction instr;
@@ -51,7 +56,7 @@ int main()
     if (!line) continue;
 
     add_tokens(&instr, line);
-    cmd = form_cmd(instr);
+    form_cmds(&instr, cmdQ);
   /*  if (my_exec(&sd, &instr, cmd)) {
 
   }*/
@@ -96,7 +101,7 @@ int my_exec(struct shell_data *sd, struct instruction* instr, char **cmd)
   p("print $USER");
 
   print_tokens(instr);
-  char *alias_expansion = expand_alias(instr->tokens[0]);
+  const char *alias_expansion = expand_alias(instr->tokens[0]);
   if (!alias_expansion) {
 
   }
@@ -139,53 +144,90 @@ void init_builtin_function_pointer()
 
 }
 
-void load_cmdQ(GQueue *cmdQ, struct instructions *instr)
+/*void load_cmdQ(GQueue *cmdQ, struct instructions *instr)
 {
   int i = 0;
   my_cmd = {NULL, NULL, RED_OUT_NONE, NULL};
   for (i = 0; i < instr->num_tokens; ++i) {
 
   }
-}
+}*/
 
 void form_cmds(struct instruction *instr, struct cmd_queue *cq)
 {
-  int rin[50];
-  int rout[50];
   int i;
+  int num_rin = 0;
+  int num_rout = 0;
 
 
-  struct cmd *c = calloc(1, sizeof(cmd));
+  struct cmd *c = calloc(1, sizeof(struct cmd));
+  char *t;
+  /*
+    Pass 1: Store text and only form commands
+  */
+  for(i = 0; i < instr->num_tokens; ++i) {
+    t = strdup((instr->tokens)[i]);
 
-  for(i = 1; i < instr->num_tokens; ++i) {
-    char *t = (instr->tokens)[i];
-    /* skip if it's the last */
-    if (strcmp(t, "<") == 0 || strcmp(t, ">" == 0 || strcmp(t, "|") == 0) {
+
+    /* skip the next input because its either input or output redirect */
+    if (strcmp(t, "<") == 0 || strcmp(t, ">") == 0)  {
+      ++i;
+      free(t);
       continue;
     }
 
-    /* These are the possible redirect options available */
-    if (strcmp((instr->tokens)[i-1], "<") == 0) {
-        c->red_in = strdup((instr->tokens)[i-1]);
-        c->red_in_type = RED_IN_FILE;
-    } else if (strcmp((instr->tokens)[i], ">") == 0) {
-        c->red_out = strdup((instr->tokens)[i-1]);
-        c->red_out_type = RED_OUT_FILE;
-    } else if (strcmp((instr->tokens)[i], "|")) {
-      /* For the case of a pipe, set the current output to pipe
-         then create new cmd and set its input to pipe */
-      c->red_out = strdup((instr->tokens)[i-1]);
-      c->red_out_type = RED_OUT_PIPE;
-
-      c = calloc(1, sizeof(cmd));
-
-      c->red_in = strdup((instr->tokens)[i-1]);
-      c->red_in_type = RED_IN_PIPE;
-    } else {
-      /* add the argument to c->cmd */
-      ++(c->num_cmd);
-      c->cmd = realloc(c->cmd, c->num_cmd * sizeof(char *));
+    /* skip this token, but dont' skip the next because it's a new command */
+    if (strcmp(t, "|") == 0) {
+      free(t);
+      continue;
     }
+
+    /* If the previous command is a pipe then start a new cmd */
+    if (i > 0 && strcmp((instr->tokens)[i-1], "|") == 0) {
+      add_cmd(&cmdQ, c);
+      c = calloc(1, sizeof(struct cmd));
+    }
+
+    printf("t:%s\n", t);
+
+    add_arg(c, t);
+    printf("t:%s\nc->cmd[num_cmd-1]:%s\n", t, c->cmd[c->num_cmd-1]);
   }
 
+}
+
+void add_arg(struct cmd *cmd, const char *c)
+{
+  if (!c) return;
+
+  if (cmd->num_cmd == 0) {
+    cmd->cmd = calloc(1, sizeof(char*));
+  } else {
+    cmd->cmd = realloc(cmd->cmd, (cmd->num_cmd + 1) * sizeof(char*));
+  }
+
+  cmd->cmd[cmd->num_cmd] = calloc(strlen(c) + 1, sizeof(char));
+  strcpy(cmd->cmd[cmd->num_cmd], c);
+  ++(cmd->num_cmd);
+}
+
+void print_arg(const struct cmd *cmd)
+{
+  if(!cmd->cmd) return;
+
+  int i;
+  printf("argv:\n");
+  for (i = 0; i < cmd->num_cmd; ++i) {
+    printf("#%s\n", (cmd->cmd)[i]);
+  }
+}
+
+void init_cmd_queue(struct cmd_queue *cq)
+{
+  cq->cq = g_queue_new();
+}
+
+void add_cmd(struct cmd_queue *cq, struct cmd *c)
+{
+  g_queue_push_tail(cq->cq, c);
 }
