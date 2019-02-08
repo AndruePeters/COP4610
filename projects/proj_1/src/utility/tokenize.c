@@ -89,3 +89,53 @@ void clear_instruction(struct instruction* instr_ptr)
   instr_ptr->tokens = NULL;
   instr_ptr->num_tokens = 0;
 }
+
+
+void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos)
+{
+  /* make an instruction ptr that tokenizes line */
+  struct instruction *line_instr_ptr=NULL, *oldptr = *instr_ptr, *new_instr=NULL;
+  int i,j, newsize=0;
+
+  instruction_init(new_instr);
+
+  instruction_init(line_instr_ptr);
+  add_tokens(line_instr_ptr, line);
+  newsize = line_instr_ptr->num_tokens + oldptr->num_tokens;
+
+  /* 1) copy old elements up until pos
+     2) copy new elements over
+     3) finish copying rest of elements from original
+  */
+  new_instr->tokens = calloc(newsize, sizeof(char*));
+  /* copy previous elements over */
+  for (i = 0; i < *pos; ++i) {
+    new_instr->tokens[i] = strdup(oldptr->tokens[i]);
+  }
+
+  /* copy new elements over */
+  for (j = 0; j < line_instr_ptr->num_tokens; ++j, ++i) {
+    new_instr->tokens[i] = strdup(line_instr_ptr->tokens[j]);
+  }
+
+  /* j is the position we left off on the original array
+     *pos is now the updated position
+  */
+  j = *pos;
+  *pos = i;
+
+  for (; j < oldptr->num_tokens; ++j, ++i) {
+    new_instr->tokens[i] = strdup(oldptr->tokens[j]);
+  }
+
+  free(line_instr_ptr);
+  free(*instr_ptr);
+  *instr_ptr = new_instr;
+}
+
+void instruction_init(struct instruction *instr_ptr)
+{
+  instr_ptr = calloc(1, sizeof(struct instruction));
+  instr_ptr->num_tokens = 0;
+  instr_ptr->tokens = NULL;
+}

@@ -30,6 +30,7 @@ struct cmd {
   int red_out_type;
   int red_in_type;
 
+  bool built_in;
   bool background;
 };
 

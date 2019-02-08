@@ -48,7 +48,7 @@ int main()
   instr.num_tokens = 0;
 
   init_alias();
-
+  add_alias("omw", "on my way");
 
   while (1) {
     init_cmd_queue(&cmdQ);
@@ -130,13 +130,12 @@ void init_builtin_function_pointer()
 void form_cmds(struct instruction *instr, struct cmd_queue *cq)
 {
   int i;
+  bool new_cmd = true;
 
   struct cmd *c = calloc(1, sizeof(struct cmd));
   init_cmd(c);
   char *t;
-  /*
-    Pass 1: Store text and only form commands
-  */
+
   for(i = 0; i < instr->num_tokens; ++i) {
     t = (instr->tokens)[i];
 
@@ -152,11 +151,17 @@ void form_cmds(struct instruction *instr, struct cmd_queue *cq)
       push_cmd(&cmdQ, c);
       c = calloc(1, sizeof(struct cmd));
       init_cmd(c);
+      new_cmd = true;
       continue;
     }
-
+    if (new_cmd && exists_alias(t)) {
+      t = (char*)expand_alias(t);
+      add_tokens_pos(&instr, t, &i);
+    }
+    new_cmd = false;
     add_arg_to_cmd(c, t);
   }
+
   add_null_arg(c);
   push_cmd(&cmdQ, c);
 }
