@@ -100,30 +100,7 @@ char* get_line()
 
 int my_exec(struct shell_data *sd, struct instruction* instr, char **cmd)
 {
-  void (*p)() = g_hash_table_lookup(builtins_table, "echo");
-  p("print $USER");
 
-  print_tokens(instr);
-  const char *alias_expansion = expand_alias(instr->tokens[0]);
-  if (!alias_expansion) {
-
-  }
-  pid_t child_pid, temp_pid;
-  int child_status;
-  char * arg[0];
-  child_pid = fork();
-  if (child_pid == 0) {
-    execv("/bin/ls", arg);
-
-    printf("Unkown command\n");
-    exit(0);
-  } else {
-    do {
-      temp_pid = waitpid(child_pid, &child_status, 0);
-
-    } while (temp_pid != child_pid);
-  }
-  return child_status;
 }
 
 void display_prompt(struct shell_data *sd)
