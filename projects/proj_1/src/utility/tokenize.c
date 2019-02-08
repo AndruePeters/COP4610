@@ -45,7 +45,6 @@ void add_token(struct instruction* instr_ptr, char* tok)
       instr_ptr->tokens = old_tok;
       return;
     }
-    instr_ptr->tokens = (char**)malloc(sizeof(char*));
   } else {
     if (! (instr_ptr->tokens = (char**)realloc(instr_ptr->tokens, (instr_ptr->num_tokens+1) * sizeof(char*)))) {
       fprintf(stderr, "Realloc failed in add_token for %s. \n", tok);
