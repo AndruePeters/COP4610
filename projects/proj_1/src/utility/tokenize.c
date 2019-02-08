@@ -137,5 +137,4 @@ void instruction_init(struct instruction *instr_ptr)
 {
   instr_ptr = calloc(1, sizeof(struct instruction));
   instr_ptr->num_tokens = 0;
-  instr_ptr->tokens = NULL;
 }
