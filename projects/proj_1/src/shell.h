@@ -43,10 +43,10 @@ void process_input(const char* input);
 
 void init_cmd_queue(struct cmd_queue *cq);
 void push_cmd(struct cmd_queue *cq, struct cmd *c);
-void print_cmd(struct cmd_queue *q);
+void print_cmd_queue(struct cmd_queue *q);
 void form_cmds(struct instruction *instr, struct cmd_queue *cq);
 void free_cmd_queue_data(struct cmd_queue* q);
-void print_arg(const struct cmd *cmd);
+void print_args_in_cmd(const struct cmd *cmd);
 void init_cmd(struct cmd* q);
-
+void add_null_arg(struct cmd *cmd);
 #endif

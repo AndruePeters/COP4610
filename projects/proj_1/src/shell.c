@@ -26,8 +26,8 @@
 
 int my_exec(struct shell_data *sd, struct instruction* instr, char **cmd);
 void init_builtin_function_pointer();
-void add_arg(struct cmd *cm, const char *c);
-//void load_cmdQ(GQueue *cmdQ, struct instruction *instr);
+void add_arg_to_cmd(struct cmd *cm, const char *c);
+
 
 GHashTable* builtins_table;
 struct cmd_queue cmdQ;
@@ -48,29 +48,30 @@ int main()
   instr.num_tokens = 0;
 
   init_alias();
-  struct cmd_queue asf;
-  init_cmd_queue(&asf);
+
 
   while (1) {
-
+    init_cmd_queue(&cmdQ);
     display_prompt(&sd);
-    line = get_line();
-    if (!line) continue;
+
+    if (!(line = get_line())) {
+      continue;
+    }
 
     add_tokens(&instr, line);
     form_cmds(&instr, &cmdQ);
-  /*  if (my_exec(&sd, &instr, cmd)) {
-
-  }*/
-    print_cmd(&cmdQ);
+    print_cmd_queue(&cmdQ);
     free(line);
     free_cmd_queue_data(&cmdQ);
-
+    clear_instruction(&instr);
   }
 
   return 0;
 }
 
+/*
+  Reads a complete line from stdin and sends returns it.
+*/
 char* get_line()
 {
   unsigned lim_size = 4096;
@@ -146,53 +147,47 @@ void init_builtin_function_pointer()
 
 }
 
-/*void load_cmdQ(GQueue *cmdQ, struct instructions *instr)
-{
-  int i = 0;
-  my_cmd = {NULL, NULL, RED_OUT_NONE, NULL};
-  for (i = 0; i < instr->num_tokens; ++i) {
-
-  }
-}*/
-
+/*
+  Processes tokenization to determine cmd properties.
+*/
 void form_cmds(struct instruction *instr, struct cmd_queue *cq)
 {
   int i;
 
   struct cmd *c = calloc(1, sizeof(struct cmd));
+  init_cmd(c);
   char *t;
   /*
     Pass 1: Store text and only form commands
   */
   for(i = 0; i < instr->num_tokens; ++i) {
-    t = strdup((instr->tokens)[i]);
-
+    t = (instr->tokens)[i];
 
     /* skip the next input because its either input or output redirect */
     if (strcmp(t, "<") == 0 || strcmp(t, ">") == 0)  {
       ++i;
-      free(t);
       continue;
     }
 
     /* skip this token, but dont' skip the next because it's a new command */
-    if (strcmp(t, "|") == 0) {
+    if (strcmp(t, "|") == 0 && i > 0) {
+      add_null_arg(c);
       push_cmd(&cmdQ, c);
       c = calloc(1, sizeof(struct cmd));
       init_cmd(c);
-      free(t);
       continue;
     }
 
-
-    add_arg(c, t);
-    free(t);
-    //printf("t:%s\nc->cmd[num_cmd-1]:%s\n", t, c->cmd[c->num_cmd-1]);
+    add_arg_to_cmd(c, t);
   }
+  add_null_arg(c);
   push_cmd(&cmdQ, c);
 }
 
-void add_arg(struct cmd *cmd, const char *c)
+/*
+  Adds c to cmd->cmd
+*/
+void add_arg_to_cmd(struct cmd *cmd, const char *c)
 {
   if (!c) return;
 
@@ -207,56 +202,54 @@ void add_arg(struct cmd *cmd, const char *c)
   ++(cmd->num_cmd);
 }
 
-void print_arg(const struct cmd *cmd)
+/*
+  Forms a null terminated array that can be passed to excecv and other functions
+*/
+void add_null_arg(struct cmd *cmd)
+{
+  cmd->cmd = realloc(cmd->cmd, (cmd->num_cmd + 1) * sizeof(char*));
+  cmd->cmd[cmd->num_cmd] = '\0';
+}
+
+/*
+  Prints all arguments.
+*/
+void print_args_in_cmd(const struct cmd *cmd)
 {
   if(!cmd) return;
   if(!cmd->cmd) return;
 
   int i;
-  printf("%s\n", cmd->cmd[0]);
+  for(i = 0; i < cmd->num_cmd; ++i) {
+    printf("%s\t", (cmd->cmd)[i]);
+  }
+  printf("\n");
 }
 
+/*
+  Initializes GQueue inside of struct cmd_queue
+*/
 void init_cmd_queue(struct cmd_queue *cq)
 {
   cq->cq = g_queue_new();
 }
 
+/*
+  Addsa a struct cmd* to the command queue *cq
+*/
 void push_cmd(struct cmd_queue *cq, struct cmd *c)
 {
   g_queue_push_tail(cq->cq, c);
 }
 
-void print_cmd(struct cmd_queue *q)
+
+void print_cmd_queue(struct cmd_queue *q)
 {
-  GList *walk = g_queue_peek_head_link(q->cq);
-  struct cmd *c = NULL;
-  int i;
-
-  for (i = 0; i < g_queue_get_length(q->cq) && walk; ++i) {
-    c = (struct cmd *)walk->data;
-    print_arg(c);
-    walk=walk->next;
-  }
-
-  /*GList *walk = g_queue_peek_head_link(q->cq);
-  struct cmd *c = NULL;
-  int i = 0;
-  while (walk) {
-    ++i;
-    c = (struct cmd *)walk->data;
-    printf("Command %s: \n", (c->cmd)[0]);
-    for (i = 1; i < c->num_cmd; ++i) {
-      printf("arg %d:%s\n", i, (c->cmd)[i]);
-    }
-    printf("\n\n");*/
-  /*  printf("%d\n", i);
-    walk = walk->next;
-  } */
-  //g_queue_foreach(q->cq, print_arg, NULL);
+  g_queue_foreach(q->cq, (GFunc)print_args_in_cmd, NULL);
 }
 
 //void free_cmd(struct cmd *c)
-GDestroyNotify free_cmd(gpointer gp)
+void free_cmd(gpointer gp)
 {
   struct cmd *c = gp;
   int i;
@@ -282,25 +275,12 @@ GDestroyNotify free_cmd(gpointer gp)
   c = NULL;
 }
 
+/*
+  Frees all memory accociated with q->cq
+*/
 void free_cmd_queue_data(struct cmd_queue * q)
 {
-  //print_arg(g_queue_peek_head(q->cq));
-
-//  g_queue_free(q->cq);
-  //g_queue_clear(q->cq);
-
-  //g_queue_free_full(q->cq, free_cmd);
-
-  //init_cmd_queue(q);
-
-  GList *list;
-  list = q->cq->head;
-
-  while(list) {
-    GList* next = list->next;
-    print_arg(list->data);
-    list = next;
-  }
+  g_queue_free_full(q->cq, free_cmd);
 }
 
 void init_cmd(struct cmd* q)
