@@ -47,6 +47,11 @@ void terminate_alias()
 */
 void alias(int argc, char *const argv[])
 {
+  if (argc < 2) {
+    dump_alias();
+    return;
+  }
+
   char *c, *c_bak;
   int i, new_size = 0;
   if (argc < 2) {
@@ -144,9 +149,13 @@ void alias(int argc, char *const argv[])
 /*
   Removes alias c if it exists.
 */
-void unalias(const char* c)
+void unalias(int argc, char **argv)
 {
-  rem_alias(c);
+  if (argc < 2) {
+    printf("Invalid unalias syntax.\n");
+    return;
+  }
+  rem_alias(argv[1]);
 }
 
 /*

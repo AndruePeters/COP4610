@@ -25,7 +25,7 @@ void alias(int argc, char *const argv[]);
 /*
   Removes an alias.
 */
-void unalias(const char* c);
+void unalias(int argc, char **argv);
 
 /*
   Checks to see if alias exists. If it does then it returns a pointer
