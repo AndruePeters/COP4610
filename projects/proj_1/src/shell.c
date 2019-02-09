@@ -103,23 +103,17 @@ char* get_line()
 
 int my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
 {
-
-  struct cmd * c;
-  pid_t pid;
-  int status;
-  c = cmdq->cq->head->data;
-
-
-  if ( (pid = fork()) == -1) {
-    printf("There was a forking error with fork.\n");
-  } else if (pid == 0) {
-
-    execv((c->cmd)[0], c->cmd);
-    printf ("excecv error\n");
-    exit(1);
-  } else {
-    /* in parent */
-    waitpid(pid, &status, 0);
+  GList *walk;
+  struct cmd *c;
+  walk = g_queue_peek_head_link(cmdq->cq);
+  while (walk) {
+    c = walk->data;
+    if (c->built_in == true) {
+      builtin_exec(c);
+    } else {
+      ext_exec(c);
+    }
+    walk = walk->next;
   }
 }
 
@@ -359,9 +353,10 @@ void set_cmd_path_and_type(struct cmd_queue* q)
 
 void builtin_exec(struct cmd *c)
 {
+  print_args_in_cmd(c);
   void (*fptr)();
   fptr = g_hash_table_lookup(builtins_table, (c->cmd)[0]);
-  fptr(c->num_cmd, (c->cmd));
+  (*fptr)(c->num_cmd, (c->cmd));
 }
 
 void ext_exec(struct cmd *c)
