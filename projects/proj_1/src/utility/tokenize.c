@@ -53,8 +53,7 @@ void add_token(struct instruction* instr_ptr, char* tok)
   }
 
 
-  instr_ptr->tokens[instr_ptr->num_tokens] = (char *)malloc( (strlen(tok)+1) * sizeof(char));
-  strcpy(instr_ptr->tokens[instr_ptr->num_tokens], tok);
+  instr_ptr->tokens[instr_ptr->num_tokens] = strdup(tok);
   instr_ptr->num_tokens++;
 }
 
@@ -109,13 +108,16 @@ void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos)
   */
   new_instr->tokens = calloc(newsize, sizeof(char*));
   /* copy previous elements over */
+  printf("first loop\n");
   for (i = 0; i < *pos; ++i) {
+    printf("%s\n", oldptr->tokens[i]);
     new_instr->tokens[i] = strdup(oldptr->tokens[i]);
     ++new_instr->num_tokens;
   }
 
   /* copy new elements over */
-  for (j = 0, ++i; j < line_instr_ptr->num_tokens; ++j, ++i) {
+  for (j = 0; j < line_instr_ptr->num_tokens; ++j, ++i) {
+    printf("%s\n",line_instr_ptr->tokens[j]);
     new_instr->tokens[i] = strdup(line_instr_ptr->tokens[j]);
     ++new_instr->num_tokens;
   }
@@ -125,19 +127,19 @@ void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos)
   */
   j = *pos + 1;
 
+  printf("third loop\n");
   for (; j < oldptr->num_tokens; ++j, ++i) {
+    printf("%s\n", oldptr->tokens[j]);
     new_instr->tokens[i] = strdup(oldptr->tokens[j]);
     ++(new_instr->num_tokens);
   }
-
-  /* have to include the offset */
-  ++new_instr->num_tokens;
 
   clear_instruction(line_instr_ptr);
   clear_instruction(*instr_ptr);
   free(line_instr_ptr);
   free(*instr_ptr);
   *instr_ptr = new_instr;
+  print_tokens(new_instr);
 }
 
 void instruction_init(struct instruction **instr_ptr)
