@@ -41,11 +41,11 @@ int main()
 
   char* line = NULL;
   struct shell_data sd;
-  struct instruction instr;
+  struct instruction *instr;
 
+  instruction_init(&instr);
   shell_data_init(&sd);
-  instr.tokens = NULL;
-  instr.num_tokens = 0;
+
 
   init_alias();
   add_alias("omw", "on my way");
@@ -58,12 +58,12 @@ int main()
       continue;
     }
 
-    add_tokens(&instr, line);
+    add_tokens(instr, line);
     form_cmds(&instr, &cmdQ);
     print_cmd_queue(&cmdQ);
     free(line);
     free_cmd_queue_data(&cmdQ);
-    clear_instruction(&instr);
+    clear_instruction(instr);
   }
 
   return 0;
@@ -127,7 +127,7 @@ void init_builtin_function_pointer()
 /*
   Processes tokenization to determine cmd properties.
 */
-void form_cmds(struct instruction *instr, struct cmd_queue *cq)
+void form_cmds(struct instruction **instr, struct cmd_queue *cq)
 {
   int i;
   bool new_cmd = true;
@@ -136,8 +136,8 @@ void form_cmds(struct instruction *instr, struct cmd_queue *cq)
   init_cmd(c);
   char *t;
 
-  for(i = 0; i < instr->num_tokens; ++i) {
-    t = (instr->tokens)[i];
+  for(i = 0; i < (*instr)->num_tokens; ++i) {
+    t = ((*instr)->tokens)[i];
 
     /* skip the next input because its either input or output redirect */
     if (strcmp(t, "<") == 0 || strcmp(t, ">") == 0)  {
@@ -156,7 +156,7 @@ void form_cmds(struct instruction *instr, struct cmd_queue *cq)
     }
     if (new_cmd && exists_alias(t)) {
       t = (char*)expand_alias(t);
-      add_tokens_pos(&instr, t, &i);
+      add_tokens_pos(instr, t, &i);
     }
     new_cmd = false;
     add_arg_to_cmd(c, t);
