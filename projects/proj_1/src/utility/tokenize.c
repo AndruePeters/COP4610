@@ -134,7 +134,6 @@ void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos)
   free(line_instr_ptr);
   free(*instr_ptr);
   *instr_ptr = new_instr;
-  print_tokens(new_instr);
 }
 
 void instruction_init(struct instruction **instr_ptr)

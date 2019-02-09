@@ -51,13 +51,29 @@ void alias(int argc, char *const argv[])
     printf("Invalid syntax for alias.\n");
   }
 
-  char *c = argv[1];
+
+  char *c, *c_bak;
   int name_start_pos=0, name_end_pos=0;
   int alias_start_pos=0, alias_end_pos=0;
   int key_size = 0, val_size=0;
   int len = strlen(c);
   int i = 0;
   char* key, *val;
+  int new_size = 0;
+
+  for (i = 1; i < argc; ++i) {
+    /* plus 1 included for extra space */
+    new_size += strlen(argv[i]) + 1;
+  }
+  c = calloc(new_size, sizeof(char));
+  c_bak = c;
+
+  for (i = 1; i < argc; ++i) {
+    snprintf(c, strlen(argv[i])+1, "%s ", argv[i]);
+    c += strlen(argv[i]) + 1;
+  }
+
+  printf("c: %s\n", c_bak);
 
 
 
@@ -89,7 +105,6 @@ void alias(int argc, char *const argv[])
   for (i = len-1; i > alias_start_pos; ++i) {
     if (c[i] == '\'' || c[i] == '\"') {
       alias_end_pos = i;
-      printf("alias_end_pos char: %c\n", c[i]);
       break;
     }
   }

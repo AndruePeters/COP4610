@@ -20,6 +20,7 @@
 #define RED_IN_FILE (1)
 #define RED_IN_PIPE (2)
 
+
 struct cmd {
   char **cmd;
   int num_cmd;
@@ -51,6 +52,10 @@ void free_cmd_queue_data(struct cmd_queue* q);
 void print_args_in_cmd(const struct cmd *cmd);
 void init_cmd(struct cmd* q);
 void add_null_arg(struct cmd *cmd);
+
 struct cmd* cmd_queue_get_last_cmd(struct cmd_queue* q);
 struct cmd* cmd_queue_get_first_cmd(struct cmd_queue* q);
+void set_cmd_path_and_type(struct cmd_queue* q);
+void builtin_exec(struct cmd *c);
+void ext_exec(struct cmd *c);
 #endif

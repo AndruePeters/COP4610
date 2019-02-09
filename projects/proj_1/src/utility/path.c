@@ -121,7 +121,6 @@ void tokenize_path(const char* p, GQueue* q)
 {
   char* token, *cpy, *saveptr = NULL, *tmp;
 
-  printf("In tokenize_path, p = %s\n", p);
   /* Copy p into cpy */
   cpy = strdup(p);
 
@@ -156,7 +155,6 @@ char* queue_to_string(GQueue* q)
     safe_free(path_bak);
     walk = walk->next;
   }
-  printf("q to string: %s\n", path);
   return path;
 }
 

@@ -15,7 +15,6 @@ void echo(int argc, char **argv)
   for (i = 1; i < argc; ++i) {
     exp = expand_env(argv[i]);
     if (exp) {
-      printf("%s ", exp);
       free(exp);
     } else {
       printf("Environmental variable does not exist.\n");

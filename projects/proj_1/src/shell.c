@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <glib.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 
 #include <builtins/shell_data.h>
 #include <builtins/cd.h>
@@ -31,16 +32,16 @@ void add_arg_to_cmd(struct cmd *cm, const char *c);
 
 GHashTable* builtins_table;
 struct cmd_queue cmdQ;
+struct shell_data sd;
 
 
-
-int main()
+int main(int argc, char **argv)
 {
   init_builtin_function_pointer();
   init_cmd_queue(&cmdQ);
 
   char* line = NULL;
-  struct shell_data sd;
+
   struct instruction *instr;
 
   instruction_init(&instr);
@@ -61,7 +62,8 @@ int main()
     add_tokens(instr, line);
     form_cmds(&instr, &cmdQ);
     proc_redirect_cmd(instr, &cmdQ);
-    print_cmd_queue(&cmdQ);
+    set_cmd_path_and_type(&cmdQ);
+    my_exec(&sd, &cmdQ);
     free(line);
     free_cmd_queue_data(&cmdQ);
     clear_instruction(instr);
@@ -102,27 +104,43 @@ char* get_line()
 int my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
 {
 
+  struct cmd * c;
+  pid_t pid;
+  int status;
+  c = cmdq->cq->head->data;
+
+
+  if ( (pid = fork()) == -1) {
+    printf("There was a forking error with fork.\n");
+  } else if (pid == 0) {
+
+    execv((c->cmd)[0], c->cmd);
+    printf ("excecv error\n");
+    exit(1);
+  } else {
+    /* in parent */
+    waitpid(pid, &status, 0);
+  }
 }
 
 void display_prompt(struct shell_data *sd)
 {
   static char hostname[255];
   gethostname(hostname, 255);
-  printf("%s@%s:%s$ ", getenv("USER"), hostname, sd->pwd);
+  printf("%s@%s:%s$ ", getenv("USER"), hostname, getenv("PWD"));
 }
 
+/*
+  Creates hash table with entries pointing text to function pointer
+*/
 void init_builtin_function_pointer()
 {
   builtins_table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, NULL);
-
-//  g_hash_table_replace(builtins_table, "alias", alias(char*));
-  //g_hash_table_replace(builtins_table, "unalias", unalias);
-  //g_hash_table_replace(builtins_table, "cd", cd);
+  g_hash_table_replace(builtins_table, "alias", alias);
+  g_hash_table_replace(builtins_table, "unalias", unalias);
+  g_hash_table_replace(builtins_table, "cd", cd);
   g_hash_table_replace(builtins_table, "echo", echo);
-  //g_hash_table_replace(builtins_table, "exit", exit);
-  //g_hash_table_replace(builtins_table, "ls", ls);
-
-
+  g_hash_table_replace(builtins_table, "exit", exit);
 }
 
 /*
@@ -176,10 +194,12 @@ void proc_redirect_cmd(struct instruction *instr, struct cmd_queue *cq)
   char *t;
   struct cmd *c;
 
-  print_tokens(instr);
+  GList* walk = g_queue_peek_head_link(cq->cq);
+  c = walk->data;
+
   for (i = 0; i < instr->num_tokens; ++i) {
     t = instr->tokens[i];
-    printf("t:%s\n",t);
+
     if (strcmp(t, "<") == 0) {
       c = cmd_queue_get_first_cmd(cq);
       c->red_in = strdup(instr->tokens[i+1]);
@@ -189,7 +209,10 @@ void proc_redirect_cmd(struct instruction *instr, struct cmd_queue *cq)
       c->red_out = strdup(instr->tokens[i+1]);
       c->red_out_type = RED_OUT_FILE;
     } else if (strcmp(t, "|") == 0) {
-
+      c->red_out_type = RED_OUT_PIPE;
+      walk = walk->next;
+      c = walk->data;
+      c->red_in_type = RED_IN_PIPE;
     }
   }
 }
@@ -302,7 +325,8 @@ void init_cmd(struct cmd* q)
   q->red_out = NULL;
   q->red_out_type = 0;
   q->red_in_type = 0;
-  q->background = NULL;
+  q->built_in = false;
+  q->background = false;
 }
 
 struct cmd* cmd_queue_get_first_cmd(struct cmd_queue* q)
@@ -313,4 +337,52 @@ struct cmd* cmd_queue_get_first_cmd(struct cmd_queue* q)
 struct cmd* cmd_queue_get_last_cmd(struct cmd_queue* q)
 {
   return g_queue_peek_tail(q->cq);
+}
+
+void set_cmd_path_and_type(struct cmd_queue* q)
+{
+  GList *walk = g_queue_peek_head_link(q->cq);
+  struct cmd* c;
+  void (*fptr)();
+  while (walk) {
+    c = walk->data;
+    if (g_hash_table_contains(builtins_table, (c->cmd)[0])) {
+      c->built_in = true;
+      fptr = g_hash_table_lookup(builtins_table, (c->cmd)[0]);
+      fptr(c->num_cmd, (c->cmd));
+    } else {
+      c->built_in = false;
+    }
+    walk = walk->next;
+  }
+}
+
+void builtin_exec(struct cmd *c)
+{
+  void (*fptr)();
+  fptr = g_hash_table_lookup(builtins_table, (c->cmd)[0]);
+  fptr(c->num_cmd, (c->cmd));
+}
+
+void ext_exec(struct cmd *c)
+{
+  pid_t pid;
+  int status;
+
+  if ( (pid = fork()) == -1) {
+    printf("There was a forking error with fork.\n");
+  } else if (pid == 0) {
+
+    execv((c->cmd)[0], c->cmd);
+    printf ("excecv error\n");
+    exit(1);
+  } else {
+    /* in parent */
+    ++sd.num_com;
+    if (c->background) {
+      /* proc in background */
+    } else {
+      waitpid(pid, &status, 0);
+    }
+  }
 }
