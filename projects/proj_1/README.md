@@ -1,6 +1,6 @@
 # Project 1 - Group 12
 
-Members: Andrue, Emad, Oscar
+Members: Andrue Peters, Oscar Flores
 
 # Description
 Design and implement a basic shell interface that supports input/output redirection,
