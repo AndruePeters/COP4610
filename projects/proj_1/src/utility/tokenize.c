@@ -97,11 +97,11 @@ void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos)
   struct instruction *line_instr_ptr=NULL, *oldptr = *instr_ptr, *new_instr=NULL;
   int i,j, newsize=0;
 
-  instruction_init(new_instr);
+  instruction_init(&new_instr);
 
-  instruction_init(line_instr_ptr);
+  instruction_init(&line_instr_ptr);
   add_tokens(line_instr_ptr, line);
-  newsize = line_instr_ptr->num_tokens + oldptr->num_tokens;
+  newsize = line_instr_ptr->num_tokens + oldptr->num_tokens + 1;
 
   /* 1) copy old elements up until pos
      2) copy new elements over
@@ -111,11 +111,13 @@ void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos)
   /* copy previous elements over */
   for (i = 0; i < *pos; ++i) {
     new_instr->tokens[i] = strdup(oldptr->tokens[i]);
+    ++new_instr->num_tokens;
   }
 
   /* copy new elements over */
   for (j = 0; j < line_instr_ptr->num_tokens; ++j, ++i) {
     new_instr->tokens[i] = strdup(line_instr_ptr->tokens[j]);
+    ++new_instr->num_tokens;
   }
 
   /* j is the position we left off on the original array
@@ -126,15 +128,20 @@ void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos)
 
   for (; j < oldptr->num_tokens; ++j, ++i) {
     new_instr->tokens[i] = strdup(oldptr->tokens[j]);
+    ++new_instr->num_tokens;
   }
 
+  clear_instruction(line_instr_ptr);
+  clear_instruction(*instr_ptr);
   free(line_instr_ptr);
   free(*instr_ptr);
   *instr_ptr = new_instr;
+
 }
 
-void instruction_init(struct instruction *instr_ptr)
+void instruction_init(struct instruction **instr_ptr)
 {
-  instr_ptr = calloc(1, sizeof(struct instruction));
-  instr_ptr->num_tokens = 0;
+  *instr_ptr = calloc(1, sizeof(struct instruction));
+  (*instr_ptr)->num_tokens = 0;
+  (*instr_ptr)->tokens = NULL;
 }
