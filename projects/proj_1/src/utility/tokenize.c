@@ -115,28 +115,29 @@ void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos)
   }
 
   /* copy new elements over */
-  for (j = 0; j < line_instr_ptr->num_tokens; ++j, ++i) {
+  for (j = 0, ++i; j < line_instr_ptr->num_tokens; ++j, ++i) {
     new_instr->tokens[i] = strdup(line_instr_ptr->tokens[j]);
     ++new_instr->num_tokens;
   }
 
-  /* j is the position we left off on the original array
-     *pos is now the updated position
+  /* j is the element we left off on, so it is the value of the alias itself,
+    therefore, we increment it by 1 to skip adding the alias
   */
-  j = *pos;
-  *pos = i;
+  j = *pos + 1;
 
   for (; j < oldptr->num_tokens; ++j, ++i) {
     new_instr->tokens[i] = strdup(oldptr->tokens[j]);
-    ++new_instr->num_tokens;
+    ++(new_instr->num_tokens);
   }
+
+  /* have to include the offset */
+  ++new_instr->num_tokens;
 
   clear_instruction(line_instr_ptr);
   clear_instruction(*instr_ptr);
   free(line_instr_ptr);
   free(*instr_ptr);
   *instr_ptr = new_instr;
-
 }
 
 void instruction_init(struct instruction **instr_ptr)
