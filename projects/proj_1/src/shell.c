@@ -48,7 +48,7 @@ int main()
 
 
   init_alias();
-  add_alias("omw", "on my way");
+  add_alias("omw", "on my | way");
 
   while (1) {
     init_cmd_queue(&cmdQ);
@@ -60,6 +60,7 @@ int main()
 
     add_tokens(instr, line);
     form_cmds(&instr, &cmdQ);
+    proc_redirect_cmd(instr, &cmdQ);
     print_cmd_queue(&cmdQ);
     free(line);
     free_cmd_queue_data(&cmdQ);
@@ -157,6 +158,7 @@ void form_cmds(struct instruction **instr, struct cmd_queue *cq)
     if (new_cmd && exists_alias(t)) {
       t = (char*)expand_alias(t);
       add_tokens_pos(instr, t, &i);
+      t = ((*instr)->tokens)[i];
     }
     new_cmd = false;
     add_arg_to_cmd(c, t);
@@ -164,6 +166,32 @@ void form_cmds(struct instruction **instr, struct cmd_queue *cq)
 
   add_null_arg(c);
   push_cmd(&cmdQ, c);
+}
+
+
+void proc_redirect_cmd(struct instruction *instr, struct cmd_queue *cq)
+{
+  int i;
+  bool new_cmd = true;
+  char *t;
+  struct cmd *c;
+
+  print_tokens(instr);
+  for (i = 0; i < instr->num_tokens; ++i) {
+    t = instr->tokens[i];
+    printf("t:%s\n",t);
+    if (strcmp(t, "<") == 0) {
+      c = cmd_queue_get_first_cmd(cq);
+      c->red_in = strdup(instr->tokens[i+1]);
+      c->red_in_type = RED_IN_FILE;
+    } else if (strcmp(t, ">") == 0) {
+      c = cmd_queue_get_last_cmd(cq);
+      c->red_out = strdup(instr->tokens[i+1]);
+      c->red_out_type = RED_OUT_FILE;
+    } else if (strcmp(t, "|") == 0) {
+
+    }
+  }
 }
 
 /*
@@ -275,4 +303,14 @@ void init_cmd(struct cmd* q)
   q->red_out_type = 0;
   q->red_in_type = 0;
   q->background = NULL;
+}
+
+struct cmd* cmd_queue_get_first_cmd(struct cmd_queue* q)
+{
+  return g_queue_peek_tail(q->cq);
+}
+
+struct cmd* cmd_queue_get_last_cmd(struct cmd_queue* q)
+{
+  return g_queue_peek_tail(q->cq);
 }
