@@ -4,15 +4,21 @@
 #include <utility/path.h>
 #include "echo.h"
 
-void echo(const char *line)
+/*
+  The method for expanding is bad, but it was designed before echo
+  was changed to have an array of strings.
+*/
+void echo(int argc, char **argv)
 {
-  if (!line) { return; }
-
-  char *expanded = expand_env(line);
-  if (expanded) {
-    printf("%s\n", expanded);
-    free(expanded);
-  } else {
-    printf("Error: environmental variable does not exist.\n");
+  int i;
+  char *exp;
+  for (i = 1; i < argc; ++i) {
+    exp = expand_env(argv[i]);
+    if (exp) {
+      printf("%s ", exp);
+      free(exp);
+    } else {
+      printf("Environmental variable does not exist.\n");
+    }
   }
 }

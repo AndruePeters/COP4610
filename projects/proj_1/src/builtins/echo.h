@@ -4,5 +4,5 @@
 /*
   Prints results of line to screen with environmental variables expanded.
 */
-void echo(const char *line);
+void echo(int argc, char **argv);
 #endif
