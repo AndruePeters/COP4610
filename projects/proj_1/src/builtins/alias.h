@@ -20,7 +20,7 @@ void terminate_alias();
 /*
   Accepts argument after alias.
 */
-void alias(const char* c);
+void alias(int argc, char *const argv[]);
 
 /*
   Removes an alias.

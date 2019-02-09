@@ -5,7 +5,7 @@
 /*
   Returns true if successfully changed directory.
 */
-bool cd(const char* path, struct shell_data* sd);
+void cd(int argc, char **argv);
 
 
 

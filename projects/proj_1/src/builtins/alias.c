@@ -45,18 +45,21 @@ void terminate_alias()
   Project description says command will only be given in the form "alias alias_name='alias'
   Could shorten code, but this works well and only makes one pass through the string.
 */
-void alias(const char* c)
+void alias(int argc, char *const argv[])
 {
-  if (!c) {
-
+  if (argc < 2) {
+    printf("Invalid syntax for alias.\n");
   }
 
+  char *c = argv[1];
   int name_start_pos=0, name_end_pos=0;
   int alias_start_pos=0, alias_end_pos=0;
   int key_size = 0, val_size=0;
   int len = strlen(c);
   int i = 0;
   char* key, *val;
+
+
 
   /* Find first alphanumeric character */
   for (i = 0; i < len; ++i) {
