@@ -36,6 +36,6 @@ void clear_instruction(struct instruction* instr_ptr);
 
 */
 void add_tokens_pos(struct instruction** instr_ptr, const char *line, int *pos);
-void instruction_init(struct instruction *instr_ptr);
+void instruction_init(struct instruction **instr_ptr);
 
 #endif
