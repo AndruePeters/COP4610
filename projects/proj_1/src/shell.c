@@ -337,18 +337,44 @@ void set_cmd_path_and_type(struct cmd_queue* q)
 {
   GList *walk = g_queue_peek_head_link(q->cq);
   struct cmd* c;
-  void (*fptr)();
+  char *path;
+
   while (walk) {
     c = walk->data;
     if (g_hash_table_contains(builtins_table, (c->cmd)[0])) {
       c->built_in = true;
-      fptr = g_hash_table_lookup(builtins_table, (c->cmd)[0]);
-      fptr(c->num_cmd, (c->cmd));
     } else {
+      /* not a built in */
       c->built_in = false;
+
+      /* check to see if what they typed in is a file */
+      path = get_full_path(c->cmd[0]);
+
+      if(is_file(path)) {
+        cmd_overwrite_filename(walk->data, path);
+      } else {
+        /* does not exist in current directory, so let's check $PATH */
+        free(path);
+        path = expand_path(c->cmd[0]);
+        printf("path:%s", path);
+        if(!is_file(path)) {
+          printf("Invalid command, human. Prepare for the consequences because I am not programmed to stop.\n");
+          free(path);
+        } else {
+          cmd_overwrite_filename(walk->data, path);
+        }
+
+    }
+
     }
     walk = walk->next;
   }
+}
+
+void cmd_overwrite_filename(struct cmd* c, const char* new_name)
+{
+  free(c->cmd[0]);
+  c->cmd[0] = new_name;
 }
 
 void builtin_exec(struct cmd *c)

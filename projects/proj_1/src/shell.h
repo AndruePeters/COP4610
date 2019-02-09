@@ -52,6 +52,7 @@ void free_cmd_queue_data(struct cmd_queue* q);
 void print_args_in_cmd(const struct cmd *cmd);
 void init_cmd(struct cmd* q);
 void add_null_arg(struct cmd *cmd);
+void cmd_overwrite_filename(struct cmd* c, const char* new_name);
 
 struct cmd* cmd_queue_get_last_cmd(struct cmd_queue* q);
 struct cmd* cmd_queue_get_first_cmd(struct cmd_queue* q);
