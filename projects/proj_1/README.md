@@ -1,10 +1,9 @@
 # Project 1 - Group 15
-
-Members: 
-Andrue Peters
+## Members
+Andrue Peters:
 Parsing, prompt, execution, path resolution, built-ins, tokenize
 
-Oscar Flores
+Oscar Flores:
 Piping, Built-Ins, general debugging
 
 # How to Compile the executable using a makefile
@@ -70,16 +69,19 @@ was called to pipe command 3, which has already been piped in the double pipe fu
 general line of thinking. 
 Novel Utility: We implemented a clear function to clear the screen. This keeps your terminal clutter free.
 
-# ------------------ Project 1 General Information for our Own Use --------------------------------------------------
-# Project Description
+# Bugs Found
+1. First bug was in the tok_test.c. Issue was that uninitialized struct instruction can cause the program to crash at realloc. I assumed the compiler would set each value to NULL and 0. Soemtimes it worked, sometimes it didn't. Program fixed when I initialzied the values. 1/17/19
+
+# --------------------------------------------------------------------------------------------
+# Project 1 General Information for our Own Use
+## Project Description
 Design and implement a basic shell interface that supports input/output redirection,
 pipes, background processing, and a series of built-in functions. The shell needs
 to be robust (e.g. it should not crash under any circumstance beyond machine failure).
 Unless otherwise specified, the required features should adhere to the operational
 semantics of the bash shell.
 
-# Project Tasks
-## Overview
+## Project Tasks - Overview
 * Implement a basic shell.
 * Implementation is distributed into 10 parts.
   1. Parsing
@@ -118,6 +120,3 @@ semantics of the bash shell.
 * Support multiple pipes []
 * Unique built-ins with proper documentation []
 * Shell-ception: can execute your shell from within a running shell process repeatedly
-
-# Bugs Found
-1. First bug was in the tok_test.c. Issue was that uninitialized struct instruction can cause the program to crash at realloc. I assumed the compiler would set each value to NULL and 0. Soemtimes it worked, sometimes it didn't. Program fixed when I initialzied the values. 1/17/19
