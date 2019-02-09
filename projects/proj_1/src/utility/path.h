@@ -31,7 +31,7 @@ char* expand_home(const char* src);
   Doesn't do anything yet.
   *WARNING
 */
-void expand_path(char** p);
+char* expand_path(const char* file);
 
 /*
   Returns a string in form of $PWD/src, where $PWD is expanded.

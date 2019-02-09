@@ -314,12 +314,33 @@ char* expand_home(const char* src)
 }
 
 /*
-  Doesn't currently do anything.
+  P is the name of the file we want to try.
 */
-void expand_path(char** p)
+char* expand_path(const char* file)
 {
+  char* path, *tok, *path_cpy, *ret, *saveptr;
+  path = getenv("PATH");
+  path_cpy = strdup(path);
 
+  tok = strtok_r(path_cpy, ":", &saveptr);
+
+  while (tok) {
+    ret = concat_path_m2(tok, file);
+    if (is_file(ret)) {
+      break;
+    }
+    free(ret);
+    tok = strtok_r(NULL, ":", &saveptr);
+  }
+
+  if (!tok) {
+    ret = NULL;
+  }
+
+  free(path_cpy);
+  return ret;
 }
+
 
 
 /*
