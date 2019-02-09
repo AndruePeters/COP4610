@@ -47,33 +47,46 @@ void terminate_alias()
 */
 void alias(int argc, char *const argv[])
 {
+  char *c, *c_bak;
+  int i, new_size = 0;
   if (argc < 2) {
     printf("Invalid syntax for alias.\n");
   }
 
-
-  char *c, *c_bak;
-  int name_start_pos=0, name_end_pos=0;
-  int alias_start_pos=0, alias_end_pos=0;
-  int key_size = 0, val_size=0;
-  int len = strlen(c);
-  int i = 0;
-  char* key, *val;
-  int new_size = 0;
-
   for (i = 1; i < argc; ++i) {
     /* plus 1 included for extra space */
     new_size += strlen(argv[i]) + 1;
+    printf("%s\t", argv[i]);
   }
-  c = calloc(new_size, sizeof(char));
+  printf("\n\n");
+
+  c = calloc(new_size + i-1, sizeof(char));
   c_bak = c;
 
   for (i = 1; i < argc; ++i) {
-    snprintf(c, strlen(argv[i])+1, "%s ", argv[i]);
-    c += strlen(argv[i]) + 1;
+    if ( i < argc-1 ) {
+      memcpy(c, argv[i], strlen(argv[i]));
+      c += strlen(argv[i]);
+      *c = ' ';
+      ++c;
+    } else {
+      memcpy(c, argv[i], strlen(argv[i]));
+      c += strlen(argv[i]);
+      *c = '\0';
+    }
   }
+  *c = '\0';
+  c = c_bak;
+  int name_start_pos=0, name_end_pos=0;
+  int alias_start_pos=0, alias_end_pos=0;
+  int key_size = 0, val_size=0;
 
+  char* key, *val;
+
+
+  int len = strlen(c);
   printf("c: %s\n", c_bak);
+  printf("len: %d\n", len);
 
 
 
@@ -122,6 +135,7 @@ void alias(int argc, char *const argv[])
 
 
   add_alias(key, val);
+  printf("KEY:%s\t\tVAL:%s\n", key, val);
   free(key);
   free(val);
 }
@@ -174,6 +188,9 @@ bool add_alias(const char* key, const char* data)
   gpointer k_cpy, d_cpy;
   k_cpy = strdup(key);
   d_cpy = strdup(data);
+
+  printf("keylen: %d\n", strlen(key));
+  printf("vallen: %d\n", strlen(d_cpy));
 
   alias_added = (bool)g_hash_table_replace (alias_table, k_cpy, d_cpy);
   return alias_added;
