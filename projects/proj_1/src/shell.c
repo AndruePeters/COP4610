@@ -24,7 +24,7 @@
 
 #include "shell.h"
 
-int my_exec(struct shell_data *sd, struct instruction* instr, char **cmd);
+int my_exec(struct shell_data *sd, struct cmd_queue* cmdq);
 void init_builtin_function_pointer();
 void add_arg_to_cmd(struct cmd *cm, const char *c);
 
@@ -99,7 +99,7 @@ char* get_line()
   return line;
 }
 
-int my_exec(struct shell_data *sd, struct instruction* instr, char **cmd)
+int my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
 {
 
 }

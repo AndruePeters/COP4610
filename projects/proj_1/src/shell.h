@@ -1,6 +1,6 @@
 /*
   Rules for evaluating arguments
-  1) Check to see if an alias exists, of so then expand
+  1) Check to see if an alias exists, if so then expand
   2) Check to see if path exists
 */
 
