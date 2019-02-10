@@ -12,7 +12,7 @@
 #include "path.h"
 
 /* Dumps all data from a GQueue * */
-static void print_queue(GQueue* q);
+ void print_queue(GQueue* q);
 
 /* Checks to see if pointer is null before it is freed */
 static void safe_free(void *ptr);

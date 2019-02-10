@@ -18,6 +18,7 @@ void cd(int argc, char **argv)
   }
   char *file_path = NULL;
   char *path = argv[1];
+  printf("argv[1]:%s\n\n", argv[1]);
   char *cwd = calloc(_CD_MAX_BUFFER_, sizeof(char));
 
   if ((file_path = get_full_path(path))) {

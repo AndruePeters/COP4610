@@ -198,9 +198,6 @@ bool add_alias(const char* key, const char* data)
   k_cpy = strdup(key);
   d_cpy = strdup(data);
 
-  printf("keylen: %d\n", strlen(key));
-  printf("vallen: %d\n", strlen(d_cpy));
-
   alias_added = (bool)g_hash_table_replace (alias_table, k_cpy, d_cpy);
   return alias_added;
 }

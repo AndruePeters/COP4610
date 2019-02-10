@@ -12,11 +12,15 @@
 #include <glib.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <builtins/shell_data.h>
 #include <builtins/cd.h>
 #include <builtins/alias.h>
 #include <builtins/echo.h>
+#include <builtins/exit.h>
+#include <builtins/clear.h>
 
 
 
@@ -25,7 +29,7 @@
 
 #include "shell.h"
 
-int my_exec(struct shell_data *sd, struct cmd_queue* cmdq);
+void my_exec(struct shell_data *sd, struct cmd_queue* cmdq);
 void init_builtin_function_pointer();
 void add_arg_to_cmd(struct cmd *cm, const char *c);
 
@@ -101,21 +105,7 @@ char* get_line()
   return line;
 }
 
-int my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
-{
-  GList *walk;
-  struct cmd *c;
-  walk = g_queue_peek_head_link(cmdq->cq);
-  while (walk) {
-    c = walk->data;
-    if (c->built_in == true) {
-      builtin_exec(c);
-    } else {
-      ext_exec(c);
-    }
-    walk = walk->next;
-  }
-}
+
 
 void display_prompt(struct shell_data *sd)
 {
@@ -134,7 +124,8 @@ void init_builtin_function_pointer()
   g_hash_table_replace(builtins_table, "unalias", unalias);
   g_hash_table_replace(builtins_table, "cd", cd);
   g_hash_table_replace(builtins_table, "echo", echo);
-  g_hash_table_replace(builtins_table, "exit", exit);
+  g_hash_table_replace(builtins_table, "exit", my_exit);
+  g_hash_table_replace(builtins_table, "clear", clear);
 }
 
 /*
@@ -184,7 +175,6 @@ void form_cmds(struct instruction **instr, struct cmd_queue *cq)
 void proc_redirect_cmd(struct instruction *instr, struct cmd_queue *cq)
 {
   int i;
-  bool new_cmd = true;
   char *t;
   struct cmd *c;
 
@@ -356,7 +346,6 @@ void set_cmd_path_and_type(struct cmd_queue* q)
         /* does not exist in current directory, so let's check $PATH */
         free(path);
         path = expand_path(c->cmd[0]);
-        printf("path:%s", path);
         if(!is_file(path)) {
           printf("Invalid command, human. Prepare for the consequences because I am not programmed to stop.\n");
           free(path);
@@ -371,39 +360,107 @@ void set_cmd_path_and_type(struct cmd_queue* q)
   }
 }
 
-void cmd_overwrite_filename(struct cmd* c, const char* new_name)
+void cmd_overwrite_filename(struct cmd* c, char* new_name)
 {
   free(c->cmd[0]);
   c->cmd[0] = new_name;
 }
 
-void builtin_exec(struct cmd *c)
+void my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
 {
-  print_args_in_cmd(c);
+  GList *walk;
+  struct cmd *c;
+  walk = g_queue_peek_head_link(cmdq->cq);
+  void (*exec_func)(struct cmd *c, int *fi, int *fo);
+
+  int fdi=0, fdo=0;
+
+  while (walk) {
+    c = walk->data;
+    exec_func = (c->built_in == true) ? builtin_exec : ext_exec;
+
+    exec_func(c, &fdi, &fdo);
+    walk = walk->next;
+  }
+}
+
+void builtin_exec(struct cmd *c, int *fdi, int *fdo)
+{
+  cmd_red_input_open(c, fdi);
+  cmd_red_output_open(c, fdo);
+
   void (*fptr)();
   fptr = g_hash_table_lookup(builtins_table, (c->cmd)[0]);
   (*fptr)(c->num_cmd, (c->cmd));
+  cmd_red_input_close(c, fdi);
+  cmd_red_output_close(c, fdo);
 }
 
-void ext_exec(struct cmd *c)
+void ext_exec(struct cmd *c, int *fdi, int *fdo)
 {
-  pid_t pid;
+  cmd_red_input_open(c, fdi);
+  cmd_red_output_open(c, fdo);
+
+  int fi=*fdi, fo=*fdo;
   int status;
-
-  if ( (pid = fork()) == -1) {
-    printf("There was a forking error with fork.\n");
-  } else if (pid == 0) {
-
-    execv((c->cmd)[0], c->cmd);
-    printf ("excecv error\n");
+  pid_t pid = fork();
+  if (pid == -1) {
+    // error
+    printf("What the fork Batman? Something went wrong with fork()\n");
     exit(1);
+  } else if (pid == 0) {
+    // child
+    cmd_red_input_close(c, &fi);
+    cmd_red_output_close(c, &fo);
+    execv(c->cmd[0], c->cmd);
+
+
   } else {
-    /* in parent */
-    ++sd.num_com;
-    if (c->background) {
-      /* proc in background */
-    } else {
-      waitpid(pid, &status, 0);
+    // parent
+    waitpid(pid, &status, 0);
+    if (c->red_in_type == RED_IN_FILE) {
+      close(fi);
+    }
+    if (c->red_out_type == RED_OUT_FILE) {
+      close(fo);
     }
   }
+}
+
+bool cmd_red_input_open(struct cmd *c, int *fdi)
+{
+  bool ret = false;
+  if (c->red_in_type == RED_IN_FILE) {
+    *fdi = open(c->red_in, O_RDONLY);
+    ret = (*fdi == -1) ? false : true;
+  }
+
+  return ret;
+}
+
+bool cmd_red_output_open(struct cmd* c, int *fdo)
+{
+  bool ret = false;
+  if (c->red_out_type == RED_OUT_FILE) {
+
+    *fdo = creat(c->red_in, 0644);//open(c->red_in, O_CREAT|O_WRONLY|O_TRUNC, 0644);
+    ret = (*fdo == -1) ? false: true;
+  }
+  return ret;
+}
+
+void cmd_red_input_close(struct cmd *c, int *fdi)
+{
+  if (c->red_in_type != RED_IN_FILE) { return; }
+  close(STDIN_FILENO);
+  dup(*fdi);
+  close(*fdi);
+}
+
+void cmd_red_output_close(struct cmd* c, int *fdo)
+{
+  if (c->red_out_type != RED_OUT_FILE) {return; }
+  close(STDOUT_FILENO);
+  dup(*fdo);
+  close(*fdo);
 }
