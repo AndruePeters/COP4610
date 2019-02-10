@@ -1,6 +1,7 @@
 /*
   Andrue Peters
-
+  Main file.
+  Got messy at the end, so code can be factored out.
 */
 
 #include <stdio.h>
@@ -33,12 +34,14 @@ void my_exec(struct shell_data *sd, struct cmd_queue* cmdq);
 void init_builtin_function_pointer();
 void add_arg_to_cmd(struct cmd *cm, const char *c);
 
-
+/* Hashtable for built in functions */
 GHashTable* builtins_table;
 struct cmd_queue cmdQ;
 struct shell_data sd;
 
-
+/*
+  Main routine.
+*/
 int main(int argc, char **argv)
 {
   init_builtin_function_pointer();
@@ -106,7 +109,9 @@ char* get_line()
 }
 
 
-
+/*
+  Displays the prompt
+*/
 void display_prompt(struct shell_data *sd)
 {
   static char hostname[255];
@@ -171,7 +176,9 @@ void form_cmds(struct instruction **instr, struct cmd_queue *cq)
   push_cmd(&cmdQ, c);
 }
 
-
+/*
+  Sets information for each command for pipes and redirects
+*/
 void proc_redirect_cmd(struct instruction *instr, struct cmd_queue *cq)
 {
   int i;
@@ -259,7 +266,9 @@ void push_cmd(struct cmd_queue *cq, struct cmd *c)
   g_queue_push_tail(cq->cq, c);
 }
 
-
+/*
+  Debug method to print info for all struct cmd in cmd_queue
+*/
 void print_cmd_queue(struct cmd_queue *q)
 {
   g_queue_foreach(q->cq, (GFunc)print_args_in_cmd, NULL);
@@ -300,6 +309,9 @@ void free_cmd_queue_data(struct cmd_queue * q)
   g_queue_free_full(q->cq, free_cmd);
 }
 
+/*
+  Initializes values in cmd
+*/
 void init_cmd(struct cmd* q)
 {
   if (!q)
@@ -313,16 +325,25 @@ void init_cmd(struct cmd* q)
   q->background = false;
 }
 
+/*
+  Returns first struct cmd in cmd_queue
+*/
 struct cmd* cmd_queue_get_first_cmd(struct cmd_queue* q)
 {
   return g_queue_peek_tail(q->cq);
 }
 
+/*
+  Returns data for last struct cmd in q
+*/
 struct cmd* cmd_queue_get_last_cmd(struct cmd_queue* q)
 {
   return g_queue_peek_tail(q->cq);
 }
 
+/*
+  Finds path of file and sets cmd->built_in for all cmd in cmd_queue
+*/
 void set_cmd_path_and_type(struct cmd_queue* q)
 {
   GList *walk = g_queue_peek_head_link(q->cq);
@@ -360,12 +381,18 @@ void set_cmd_path_and_type(struct cmd_queue* q)
   }
 }
 
+/*
+  Overwrite cmd[0] with full file path
+*/
 void cmd_overwrite_filename(struct cmd* c, char* new_name)
 {
   free(c->cmd[0]);
   c->cmd[0] = new_name;
 }
 
+/*
+  Handles execution for all cmd in cmd_queue
+*/
 void my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
 {
   GList *walk;
@@ -384,6 +411,9 @@ void my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
   }
 }
 
+/*
+  Runs built in commands
+*/
 void builtin_exec(struct cmd *c, int *fdi, int *fdo)
 {
   cmd_red_input_open(c, fdi);
@@ -396,6 +426,9 @@ void builtin_exec(struct cmd *c, int *fdi, int *fdo)
   cmd_red_output_close(c, fdo);
 }
 
+/*
+  runs external commands
+*/
 void ext_exec(struct cmd *c, int *fdi, int *fdo)
 {
   cmd_red_input_open(c, fdi);
@@ -427,6 +460,9 @@ void ext_exec(struct cmd *c, int *fdi, int *fdo)
   }
 }
 
+/*
+  Opens new stdin
+*/
 bool cmd_red_input_open(struct cmd *c, int *fdi)
 {
   bool ret = false;
@@ -438,6 +474,9 @@ bool cmd_red_input_open(struct cmd *c, int *fdi)
   return ret;
 }
 
+/*
+  Opens new stdout
+*/
 bool cmd_red_output_open(struct cmd* c, int *fdo)
 {
   bool ret = false;
@@ -449,6 +488,9 @@ bool cmd_red_output_open(struct cmd* c, int *fdo)
   return ret;
 }
 
+/*
+  Closes and changes stdin
+*/
 void cmd_red_input_close(struct cmd *c, int *fdi)
 {
   if (c->red_in_type != RED_IN_FILE) { return; }
@@ -457,6 +499,9 @@ void cmd_red_input_close(struct cmd *c, int *fdi)
   close(*fdi);
 }
 
+/*
+  Closes current stdout and switches to next
+*/
 void cmd_red_output_close(struct cmd* c, int *fdo)
 {
   if (c->red_out_type != RED_OUT_FILE) {return; }
