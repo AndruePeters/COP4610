@@ -56,8 +56,6 @@ int main(int argc, char **argv)
 
 
   init_alias();
-  add_alias("omw", "on my | way");
-
   while (1) {
     init_cmd_queue(&cmdQ);
     display_prompt(&sd);
@@ -400,8 +398,6 @@ void my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
   walk = g_queue_peek_head_link(cmdq->cq);
   void (*exec_func)(struct cmd *c);
 
-  int fdi=0, fdo=0, fdi_save=0, fdo_save=0;
-
   while (walk) {
     c = walk->data;
     exec_func = (c->built_in == true) ? builtin_exec : ext_exec;
@@ -485,7 +481,7 @@ bool cmd_red_output_open(struct cmd* c, int *saved)
     fdo = open(c->red_out, O_CREAT|O_WRONLY|O_TRUNC, 0644);
     ret = (fdo < 0) ? false: true;
     if (ret == true) {
-      saved = dup(STDOUT_FILENO);
+      *saved = dup(STDOUT_FILENO);
       dup2(fdo, STDOUT_FILENO);
     }
   }
