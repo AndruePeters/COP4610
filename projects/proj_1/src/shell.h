@@ -57,11 +57,11 @@ void cmd_overwrite_filename(struct cmd* c,  char* new_name);
 struct cmd* cmd_queue_get_last_cmd(struct cmd_queue* q);
 struct cmd* cmd_queue_get_first_cmd(struct cmd_queue* q);
 void set_cmd_path_and_type(struct cmd_queue* q);
-void builtin_exec(struct cmd *c, int *fdi, int *fdo);
-void ext_exec(struct cmd *c, int *fdi, int *fdo);
+void builtin_exec(struct cmd *c);
+void ext_exec(struct cmd *c);
 
-bool cmd_red_input_open(struct cmd *c, int *fdi);
-bool cmd_red_output_open(struct cmd* c, int *fdo);
-void cmd_red_input_close(struct cmd *c, int *fdi);
-void cmd_red_output_close(struct cmd* c, int *fdo);
+bool cmd_red_input_open(struct cmd *c, int *saved);
+bool cmd_red_output_open(struct cmd* c,  int *saved);
+void cmd_red_input_close(struct cmd *c,  int *saved);
+void cmd_red_output_close(struct cmd* c,  int *saved);
 #endif

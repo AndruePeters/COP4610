@@ -398,15 +398,15 @@ void my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
   GList *walk;
   struct cmd *c;
   walk = g_queue_peek_head_link(cmdq->cq);
-  void (*exec_func)(struct cmd *c, int *fi, int *fo);
+  void (*exec_func)(struct cmd *c);
 
-  int fdi=0, fdo=0;
+  int fdi=0, fdo=0, fdi_save=0, fdo_save=0;
 
   while (walk) {
     c = walk->data;
     exec_func = (c->built_in == true) ? builtin_exec : ext_exec;
 
-    exec_func(c, &fdi, &fdo);
+    exec_func(c);
     walk = walk->next;
   }
 }
@@ -414,28 +414,27 @@ void my_exec(struct shell_data *sd, struct cmd_queue *cmdq)
 /*
   Runs built in commands
 */
-void builtin_exec(struct cmd *c, int *fdi, int *fdo)
+void builtin_exec(struct cmd *c)
 {
-  cmd_red_input_open(c, fdi);
-  cmd_red_output_open(c, fdo);
+  int fdi_save=0, fdo_save=0;
+  cmd_red_input_open(c, &fdi_save);
+  cmd_red_output_open(c, &fdo_save);
 
   void (*fptr)();
   fptr = g_hash_table_lookup(builtins_table, (c->cmd)[0]);
   (*fptr)(c->num_cmd, (c->cmd));
-  cmd_red_input_close(c, fdi);
-  cmd_red_output_close(c, fdo);
+  cmd_red_input_close(c, &fdi_save);
+  cmd_red_output_close(c, &fdo_save);
 }
 
 /*
   runs external commands
 */
-void ext_exec(struct cmd *c, int *fdi, int *fdo)
+void ext_exec(struct cmd *c)
 {
-  cmd_red_input_open(c, fdi);
-  cmd_red_output_open(c, fdo);
-
-  int fi=*fdi, fo=*fdo;
+  int fdi_save=0, fdo_save=0;
   int status;
+
   pid_t pid = fork();
   if (pid == -1) {
     // error
@@ -443,32 +442,33 @@ void ext_exec(struct cmd *c, int *fdi, int *fdo)
     exit(1);
   } else if (pid == 0) {
     // child
-    cmd_red_input_close(c, &fi);
-    cmd_red_output_close(c, &fo);
+
+    /* Redirect in child only, so parent doesn't have to do anything. */
+    cmd_red_output_open(c, &fdo_save);
+    cmd_red_input_open(c, &fdi_save);
     execv(c->cmd[0], c->cmd);
 
 
   } else {
     // parent
     waitpid(pid, &status, 0);
-    if (c->red_in_type == RED_IN_FILE) {
-      close(fi);
-    }
-    if (c->red_out_type == RED_OUT_FILE) {
-      close(fo);
-    }
   }
 }
 
 /*
   Opens new stdin
 */
-bool cmd_red_input_open(struct cmd *c, int *fdi)
+bool cmd_red_input_open(struct cmd *c, int *saved)
 {
   bool ret = false;
+  int fdi;
   if (c->red_in_type == RED_IN_FILE) {
-    *fdi = open(c->red_in, O_RDONLY);
-    ret = (*fdi == -1) ? false : true;
+    fdi = open(c->red_in, O_RDONLY);
+    ret = (fdi == -1) ? false : true;
+    if ( ret == true) {
+      *saved = dup(STDIN_FILENO);
+      dup2(fdi, STDIN_FILENO);
+    }
   }
 
   return ret;
@@ -477,13 +477,17 @@ bool cmd_red_input_open(struct cmd *c, int *fdi)
 /*
   Opens new stdout
 */
-bool cmd_red_output_open(struct cmd* c, int *fdo)
+bool cmd_red_output_open(struct cmd* c, int *saved)
 {
+  int fdo;
   bool ret = false;
   if (c->red_out_type == RED_OUT_FILE) {
-
-    *fdo = creat(c->red_in, 0644);//open(c->red_in, O_CREAT|O_WRONLY|O_TRUNC, 0644);
-    ret = (*fdo == -1) ? false: true;
+    fdo = open(c->red_out, O_CREAT|O_WRONLY|O_TRUNC, 0644);
+    ret = (fdo < 0) ? false: true;
+    if (ret == true) {
+      saved = dup(STDOUT_FILENO);
+      dup2(fdo, STDOUT_FILENO);
+    }
   }
   return ret;
 }
@@ -491,21 +495,17 @@ bool cmd_red_output_open(struct cmd* c, int *fdo)
 /*
   Closes and changes stdin
 */
-void cmd_red_input_close(struct cmd *c, int *fdi)
+void cmd_red_input_close(struct cmd *c, int *saved)
 {
   if (c->red_in_type != RED_IN_FILE) { return; }
-  close(STDIN_FILENO);
-  dup(*fdi);
-  close(*fdi);
+  dup2(*saved, STDIN_FILENO);
 }
 
 /*
   Closes current stdout and switches to next
 */
-void cmd_red_output_close(struct cmd* c, int *fdo)
+void cmd_red_output_close(struct cmd* c, int *saved)
 {
   if (c->red_out_type != RED_OUT_FILE) {return; }
-  close(STDOUT_FILENO);
-  dup(*fdo);
-  close(*fdo);
+  dup2(*saved, STDOUT_FILENO);
 }
