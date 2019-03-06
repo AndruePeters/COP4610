@@ -13,7 +13,7 @@
 #include <linux/slab.h>
 #include <linux/string.h>
 #include <linux/uaccess.h>
-
+#include <linux/time.h>
 
 
 MODULE_LICENSE("Dual BSD/GPL");
@@ -32,7 +32,8 @@ static struct file_operations fops;
 static char *message;
 static int read_p;
 
-static long
+static struct timespec curr_time;
+static struct timespec prev_time = {0,0};
 
 
 
@@ -54,7 +55,7 @@ int my_xtime_proc_open (struct inode *sp_inode, struct file *sp_file)
 ssize_t my_xtime_proc_read(struct file *sp_file, char __user *buf, size_t size, loff_t *offset)
 {
   int len = strlen(message);
-
+  curr_time = current_kernel_time();
   read_p = !read_p;
   if (read_p) return 0;
 
