@@ -20,7 +20,7 @@ MODULE_LICENSE("Dual BSD/GPL");
 MODULE_AUTHOR("Andrue Peters");
 MODULE_DESCRIPTION("Keeps track of time since Unix EPOCH and last call");
 
-#define ENTRY_NAME "my_xtime"
+#define ENTRY_NAME "timed"
 #define ENTRY_SIZE 20
 #define PERMS 0644
 #define PARENT NULL
@@ -31,6 +31,8 @@ static struct file_operations fops;
 // message to display in proc
 static char *message;
 static int read_p;
+
+static long
 
 
 
