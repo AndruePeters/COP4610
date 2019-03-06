@@ -21,7 +21,7 @@ MODULE_AUTHOR("Andrue Peters");
 MODULE_DESCRIPTION("Keeps track of time since Unix EPOCH and last call");
 
 #define ENTRY_NAME "timed"
-#define ENTRY_SIZE 20
+#define ENTRY_SIZE 100
 #define PERMS 0644
 #define PARENT NULL
 
@@ -39,6 +39,8 @@ static struct timespec prev_time = {0,0};
 
 int my_xtime_proc_open (struct inode *sp_inode, struct file *sp_file)
 {
+  long elapsed_sec;
+  long elapsed_nsec;
   printk(KERN_INFO "proc called open\n");
   read_p = 1;
   message = kmalloc(sizeof(char) * ENTRY_SIZE, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
@@ -47,20 +49,32 @@ int my_xtime_proc_open (struct inode *sp_inode, struct file *sp_file)
     printk(KERN_WARNING "my_xtime_open");
     return -ENOMEM;
   }
+  curr_time = current_kernel_time();
 
-  strcpy(message, "Hellow, World!\n");
+  if (prev_time.tv_sec == 0) {
+    sprintf(message, "current time: %ld.%ld\n", curr_time.tv_sec, curr_time.tv_nsec);
+  } else {
+    elapsed_sec = curr_time.tv_sec - prev_time.tv_sec;
+    elapsed_nsec = curr_time.tv_nsec - prev_time.tv_nsec;
+    sprintf(message, "current time: %ld.%ld\nelapsed time: %ld.%ld\n",
+            curr_time.tv_sec, curr_time.tv_nsec, elapsed_sec,   elapsed_nsec);
+  }
+
+
   return 0;
 }
 
 ssize_t my_xtime_proc_read(struct file *sp_file, char __user *buf, size_t size, loff_t *offset)
 {
+
   int len = strlen(message);
-  curr_time = current_kernel_time();
+
   read_p = !read_p;
   if (read_p) return 0;
 
   printk(KERN_INFO "proc called read\n");
   copy_to_user(buf, message, len);
+  prev_time = curr_time;
   return len;
 }
 
