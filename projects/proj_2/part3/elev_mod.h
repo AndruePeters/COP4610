@@ -5,6 +5,7 @@
 */
 #ifndef _GROUP_15_ELEV_MOD_H_
 #define _GROUP_15_ELEV_MOD_H_
+#include <linux/list.h>
 
 #define MAX_PASSENGERS (10)
 #define LOAD_SCALE (2)
@@ -23,27 +24,30 @@ struct my_elevator {
   int passengers;
   int load;
   enum my_elev_state state;
+  struct my_elev_passenger;
 };
 
 struct my_elev_passenger {
   enum my_elev_pass_type pass_type;
   int dest_floor;
+  struct list_head pass_list;
 };
 
+
 enum my_elev_pass_type {
-  my_elev_none = 0,
-  my_elev_adult,
-  my_elev_child,
-  my_elev_roomservice,
-  my_elev_bellhop
+  MY_ELEV_NONE,
+  MY_ELEV_ADULT,
+  MY_ELEV_CHILD,
+  MY_ELEV_ROOMSERVICE,
+  MY_ELEV_BELLHOP
 };
 
 enum my_elev_state {
-  OFFLINE = 0x00,
-  IDLE,
-  LOADING,
-  UP,
-  DOWN
+  MY_ELEV_OFFLINE = 0x00,
+  MY_ELEV_IDLE,
+  MY_ELEV_LOADING,
+  MY_ELEV_UP,
+  MY_ELEV_DOWN
 };
 
 
@@ -57,10 +61,23 @@ enum my_elev_state {
   elevator is already active, 0 for a successful elevator start, and -ERRORNUM
   if it could not initialize (e.g. -ENOMEM if it couldn't allocate memory.)
   Initialize elvator as follows:
+      State: idle
+      current floor: 1
+      current load 0 units, 0 weight
+*/
 int start_elevator();
 
+/*
+  Creates a passenger of type passenger_type at start_floor that wishes to go
+  to destination_floor. This function returns 1 if the request is not valid
+  (one of the variables is out of range), and 0 otherwise.
+*/
 int issue_request(int passenger_type, int start_floor, int destination_fllor);
 
+/*
+  Deactivates elevator. At this point, the elevator will process no more requests.
+  However, it has to offload all of its current passengers.
+*/
 int stop_elevator();
 
 /*
