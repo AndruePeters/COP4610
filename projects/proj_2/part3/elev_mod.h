@@ -22,12 +22,13 @@
 struct my_elevator {
   int passengers;
   int load;
+  enum my_elev_state state;
 };
 
 struct my_elev_passenger {
   enum my_elev_pass_type pass_type;
   int dest_floor;
-}
+};
 
 enum my_elev_pass_type {
   my_elev_none = 0,
@@ -37,11 +38,25 @@ enum my_elev_pass_type {
   my_elev_bellhop
 };
 
+enum my_elev_state {
+  OFFLINE = 0x00,
+  IDLE,
+  LOADING,
+  UP,
+  DOWN
+};
+
 
 /*
   Public Methods
 */
 
+/*
+  Activates elevator service. From that point onward, the elevator exists
+  and will begin to service requests. This system call will return 1 if the
+  elevator is already active, 0 for a successful elevator start, and -ERRORNUM
+  if it could not initialize (e.g. -ENOMEM if it couldn't allocate memory.)
+  Initialize elvator as follows:
 int start_elevator();
 
 int issue_request(int passenger_type, int start_floor, int destination_fllor);
