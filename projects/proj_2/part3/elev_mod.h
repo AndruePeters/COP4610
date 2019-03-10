@@ -26,7 +26,7 @@ struct my_elevator {
 
 struct my_elev_passenger {
   enum my_elev_pass_type pass_type;
-  int floor;
+  int dest_floor;
 }
 
 enum my_elev_pass_type {
@@ -37,6 +37,20 @@ enum my_elev_pass_type {
   my_elev_bellhop
 };
 
+
+/*
+  Public Methods
+*/
+
+int start_elevator();
+
+int issue_request(int passenger_type, int start_floor, int destination_fllor);
+
+int stop_elevator();
+
+/*
+  Private Methods
+*/
 void my_elev_sleep(int time);
 int my_elev_get_load(int pass_type);
 int my_elev_get_pass_units(int pass_type);
