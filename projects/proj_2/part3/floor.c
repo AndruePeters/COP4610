@@ -13,7 +13,7 @@ static struct floor floors[MAX_FLOOR];
 int init_floors(void)
 {
   int i;
-  for (i = 0; i < MAX_FLOOR) {
+  for (i = 0; i < MAX_FLOOR; ++i) {
     INIT_LIST_HEAD(&(floors->pass_list));
   }
 }
