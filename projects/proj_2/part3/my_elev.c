@@ -14,9 +14,9 @@
 #include <linux/uaccess.h>
 #include <linux/time.h>
 
-#include "passenger.h"
-#include "floor.h"
-#include "elevator.h"
+#include <passenger.h>
+#include <floor.h>
+#include <elevator.h>
 
 
 MODULE_LICENSE("GPL");
