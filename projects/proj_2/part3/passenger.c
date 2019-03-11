@@ -52,6 +52,10 @@ int my_elev_get_pass_units(int pass_type)
 struct my_elev_passenger* my_elev_new_passenger(int pass_type, int dest_floor)
 {
   struct my_elev_passenger* ep = kmalloc( sizeof(struct my_elev_passenger), GFP_KERNEL);
+  if (!p) {
+    printk(KERN_WARNING "my_elev_new_passenger kmalloc failed.\n");
+  }
+  return ep;
 }
 
 /*
