@@ -55,12 +55,14 @@ int my_elev_get_pass_units(int pass_type)
 */
 struct my_elev_passenger* my_elev_new_passenger(int pass_type, int dest_floor)
 {
+  struct my_elev_passenger* ep = NULL;
+
   if (pass_type >= NUM_PASS_TYPES || pass_type < 0 || dest_floor <= 0 || dest_floor > MAX_FLOOR) {
     printk(KERN_WARNING "my_elev_new_passenger invalid pass_type or dest_fllor");
     printk(KERN_WARNING "pass_type:%d\ndest_floor:%d", pass_type, dest_floor);
   }
 
-  struct my_elev_passenger* ep = kmalloc( sizeof(struct my_elev_passenger), GFP_KERNEL);
+  ep = kmalloc( sizeof(struct my_elev_passenger), GFP_KERNEL);
   if (ep) {
     ep->pass_type = pass_type;
     ep->dest_floor = dest_floor;
