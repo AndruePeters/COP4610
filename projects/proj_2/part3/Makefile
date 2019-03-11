@@ -1,6 +1,6 @@
 ifneq ($(KERNELRELEASE),)
-	obj-y += passenger.o floor.o elevator.o
 	obj-m := my_elev.o
+	my_elev-y += passenger.o floor.o elevator.o
 else
 	KERNELDIR ?= /lib/modules/`uname -r`/build/
 	PWD := $(shell pwd)
