@@ -43,6 +43,10 @@ int my_elev_get_pass_units(int pass_type);
 */
 struct my_elevator_passenger* my_elev_new_passenger(int pass_type, int dest_floor);
 
+/*
+  Prints debug information for passenger.
+*/
+void my_elev_print_pass(const struct my_elevator_passenger * pass);
 
 
 

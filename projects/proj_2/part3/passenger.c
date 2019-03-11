@@ -44,3 +44,25 @@ int my_elev_get_pass_units(int pass_type)
 
   return pass_unit;
 }
+
+/*
+  Returns the address of a new passenger.
+  Does not do bounds checking. That should be done by the calling function.
+*/
+struct my_elev_passenger* my_elev_new_passenger(int pass_type, int dest_floor)
+{
+  struct my_elev_passenger* ep = kmalloc( sizeof(struct my_elev_passenger), GFP_KERNEL);
+}
+
+/*
+  Prints information for passenger
+*/
+void my_elev_print_pass(const struct my_elevator_passenger * pass)
+{
+  if (pass) {
+    printk(KERN_INFO "passenger type:%d\npassenger load:%d\npassenger floor:%d\n",
+            pass->pass_type, my_elev_get_pass_load(pass->pass_type), pass->dest_floor);
+  } else {
+    printk(KERN_WARNING "my_elev_print_pass NULL POINTER");
+  }
+}
