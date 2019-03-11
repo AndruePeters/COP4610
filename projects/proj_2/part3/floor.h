@@ -6,6 +6,7 @@
 #ifndef _GROUP_15_MY_ELEV_FLOOR_H_
 #define _GROUP_15_MY_ELEV_FLOOR_H_
 
+#include <linux/list.h>
 
 #define MAX_FLOOR (10)
 /*
