@@ -7,7 +7,7 @@
 #define _GROUP_15_MY_ELEV_FLOOR_H_
 
 #include <linux/list.h>
-
+#include "passenger.h"
 #define MAX_FLOOR (10)
 /*
   Stores passengers.
