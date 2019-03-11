@@ -1,20 +1,21 @@
+#include <linux/slab.h>
 #include "passenger.h"
 
 int my_elev_get_pass_load(int pass_type)
 {
   int ret_load;
   switch(pass_type) {
-    my_elev_adult:
+    MY_ELEV_ADULT:
       ret_load = 1 * LOAD_SCALE;
       break;
 
-    my_elev_child:
+    MY_ELEV_CHILD:
       ret_load = 0.5 * LOAD_SCALE;
       break;
-    my_elev_roomservice:
+    MY_ELEV_ROOMSERVICE:
       ret_load = 2 * LOAD_SCALE;
       break;
-    my_elev_bellhop:
+    MY_ELEV_BELLHOP:
       ret_load = 4 * LOAD_SCALE;
       break;
     default:
@@ -28,16 +29,16 @@ int my_elev_get_pass_units(int pass_type)
 {
   int pass_unit;
   switch(pass_type) {
-    my_elev_adult:
+    MY_ELEV_ADULT:
       pass_unit = 1;
       break;
-    my_elev_child:
+    MY_ELEV_CHILD:
       pass_unit = 1;
       break;
-    my_elev_roomservice:
+    MY_ELEV_ROOMSERVICE:
       pass_unit = 2;
       break;
-    my_elev_bellhop:
+    MY_ELEV_BELLHOP:
       pass_unit = 2;
       break;
     default:
@@ -60,7 +61,7 @@ struct my_elev_passenger* my_elev_new_passenger(int pass_type, int dest_floor)
   }
 
   struct my_elev_passenger* ep = kmalloc( sizeof(struct my_elev_passenger), GFP_KERNEL);
-  if (p) {
+  if (ep) {
     ep->pass_type = pass_type;
     ep->dest_floor = dest_floor;
   } else {
@@ -74,7 +75,7 @@ struct my_elev_passenger* my_elev_new_passenger(int pass_type, int dest_floor)
 /*
   Prints information for passenger
 */
-void my_elev_print_pass(const struct my_elevator_passenger * pass)
+void my_elev_print_pass(const struct my_elev_passenger * pass)
 {
   if (pass) {
     printk(KERN_INFO "passenger type:%d\npassenger load:%d\npassenger floor:%d\n",
