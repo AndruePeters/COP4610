@@ -7,7 +7,7 @@
 #define _GROUP_15_MY_ELEV_FLOOR_H_
 
 #include <linux/list.h>
-#include "passenger.h"
+#include <passenger.h>
 #define MAX_FLOOR (10)
 /*
   Stores passengers.
@@ -25,7 +25,7 @@ struct floor {
 /*
   Initializes each list element in the floors array.
 */
-int init_floors(void);
+void init_floors(void);
 
 /*
   Cleans up memory for the floors.
