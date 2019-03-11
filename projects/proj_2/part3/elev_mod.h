@@ -27,6 +27,7 @@ struct my_elevator {
   int load;
   enum my_elev_state state;
   struct my_elev_passenger;
+  struct list_head pass_list;
 };
 
 struct my_elev_passenger {
