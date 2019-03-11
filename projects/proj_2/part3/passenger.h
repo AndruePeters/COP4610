@@ -7,7 +7,7 @@
 #define _GROUP_15_MY_ELEV_PASSENGER_H_
 #define LOAD_SCALE (2)
 
-#include "floor.h"
+#include <floor.h>
 
 enum my_elev_pass_type {
   MY_ELEV_NONE,

@@ -1,21 +1,21 @@
 #include <linux/slab.h>
-#include "passenger.h"
+#include <passenger.h>
 
 int my_elev_get_pass_load(int pass_type)
 {
   int ret_load;
   switch(pass_type) {
-    MY_ELEV_ADULT:
+    case MY_ELEV_ADULT:
       ret_load = 1 * LOAD_SCALE;
       break;
 
-    MY_ELEV_CHILD:
+    case MY_ELEV_CHILD:
       ret_load = 0.5 * LOAD_SCALE;
       break;
-    MY_ELEV_ROOMSERVICE:
+    case MY_ELEV_ROOMSERVICE:
       ret_load = 2 * LOAD_SCALE;
       break;
-    MY_ELEV_BELLHOP:
+    case MY_ELEV_BELLHOP:
       ret_load = 4 * LOAD_SCALE;
       break;
     default:
@@ -29,16 +29,16 @@ int my_elev_get_pass_units(int pass_type)
 {
   int pass_unit;
   switch(pass_type) {
-    MY_ELEV_ADULT:
+    case MY_ELEV_ADULT:
       pass_unit = 1;
       break;
-    MY_ELEV_CHILD:
+    case MY_ELEV_CHILD:
       pass_unit = 1;
       break;
-    MY_ELEV_ROOMSERVICE:
+    case MY_ELEV_ROOMSERVICE:
       pass_unit = 2;
       break;
-    MY_ELEV_BELLHOP:
+    case MY_ELEV_BELLHOP:
       pass_unit = 2;
       break;
     default:
