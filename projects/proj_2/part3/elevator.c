@@ -5,7 +5,7 @@
   Elevator Scheduler
 */
 #include <linux/delay.h>
-#include "elev_mod.h"
+#include <elevator.h>
 
 void my_elev_sleep(int time)
 {
