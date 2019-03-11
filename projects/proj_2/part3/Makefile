@@ -1,6 +1,6 @@
 ifneq ($(KERNELRELEASE),)
-	obj-y += passenger.o floor.o
-	obj-m := elev_mod.o
+	obj-y += passenger.o floor.o elevator.o
+	obj-m := my_elev.o
 else
 	KERNELDIR ?= /lib/modules/`uname -r`/build/
 	PWD := $(shell pwd)
@@ -10,4 +10,4 @@ default:
 endif
 
 clean:
-	-rm -rf *.ko *.o Module* *.mod.c .tmp_versions *.order
+	-rm -rf *.ko *.o Module* *.mod.c .tmp_versions *.order .*.cmd
