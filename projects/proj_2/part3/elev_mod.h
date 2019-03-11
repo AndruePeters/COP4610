@@ -6,14 +6,24 @@
 #ifndef _GROUP_15_ELEV_MOD_H_
 #define _GROUP_15_ELEV_MOD_H_
 #include <linux/list.h>
-
+#include "passenger.h"
+#include "floor.h"
 #define MAX_PASSENGERS (10)
-//#define LOAD_SCALE (2) // defined in passenger.h
+//#define LOAD_SCALE (2)
 #define MAX_LOAD       (15 * LOAD_SCALE)
 #define BOTTOM_FLOOR (1)
 #define TOP_FLOOR (10)
 #define TIME_BTW_FLOORS (2)
 #define TIM_BTW_PASSENGER (1)
+
+
+enum my_elev_state {
+  MY_ELEV_OFFLINE = 0x00,
+  MY_ELEV_IDLE,
+  MY_ELEV_LOADING,
+  MY_ELEV_UP,
+  MY_ELEV_DOWN
+};
 
 /*
   Contains information for the current elevator.
@@ -26,20 +36,10 @@ struct my_elevator {
   int passengers;
   int load;
   enum my_elev_state state;
-  struct my_elev_passenger;
   struct list_head pass_list;
 };
 
 
-
-
-enum my_elev_state {
-  MY_ELEV_OFFLINE = 0x00,
-  MY_ELEV_IDLE,
-  MY_ELEV_LOADING,
-  MY_ELEV_UP,
-  MY_ELEV_DOWN
-};
 
 
 /*
@@ -56,7 +56,7 @@ enum my_elev_state {
       current floor: 1
       current load 0 units, 0 weight
 */
-int start_elevator();
+int start_elevator(void);
 
 /*
   Creates a passenger of type passenger_type at start_floor that wishes to go
@@ -69,7 +69,7 @@ int issue_request(int passenger_type, int start_floor, int destination_fllor);
   Deactivates elevator. At this point, the elevator will process no more requests.
   However, it has to offload all of its current passengers.
 */
-int stop_elevator();
+int stop_elevator(void);
 
 /*
   Private Methods
