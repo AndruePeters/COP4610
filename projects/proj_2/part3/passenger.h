@@ -49,15 +49,6 @@ struct my_elev_passenger* my_elev_new_passenger(int pass_type, int dest_floor);
 */
 void my_elev_print_pass(const struct my_elev_passenger * pass);
 
-/*
-  Does not type check.
-*/
-void my_elev_set_pass_type(struct my_elev_passenger *pass, int pass_type);
-
-void my_elev_set_pass_load(struct my_elev_passenger *pass, int pass_type);
-
-
-
 
 
 

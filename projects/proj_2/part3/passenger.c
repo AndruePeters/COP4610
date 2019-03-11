@@ -71,7 +71,6 @@ struct my_elev_passenger* my_elev_new_passenger(int pass_type, int dest_floor)
 
 
 
-
 /*
   Prints information for passenger
 */
