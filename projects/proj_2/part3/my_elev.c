@@ -14,14 +14,16 @@
 #include <linux/uaccess.h>
 #include <linux/time.h>
 
+MODULE_LICENSE("Dual BSD/GPL");
+MODULE_AUTHOR("Andrue Peters and Oscar Flores");
+MODULE_DESCRIPTION("Elevator scheduler");
+
 #include <passenger.h>
 #include <floor.h>
 #include <elevator.h>
 
 
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Andrue Peters and Oscar Flores");
-MODULE_DESCRIPTION("Elevator scheduler");
+
 
 #define ENTRY_NAME "my_elev"
 #define ENTRY_SIZE 100
@@ -38,10 +40,15 @@ static int read_p;
 
 int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
 {
-  printk(KERN_INFO "my_elev proc opened");
+  printk(KERN_INFO "my_elev proc opened\n");
   read_p = 1;
-  message = "Program ran.";
-  kfree(my_elev_new_passenger(MY_ELEV_ADULT, 5));
+
+  message = kmalloc(sizeof(char) * ENTRY_SIZE, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+  if (!message) {
+    printk(KERN_WARNING "my_elev_open\n");
+    return -ENOMEM;
+  }
+  sprintf(message, "trial\n");
   return 0;
 }
 
@@ -60,12 +67,14 @@ ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, l
 int my_elev_proc_release(struct inode *sp_inode, struct file *sp_file)
 {
   printk(KERN_INFO "my_elev proc called release\n");
+  kfree(message);
   return 0;
 }
 
 static int my_elev_init(void)
 {
   printk(KERN_NOTICE "/proc/%s create\n", ENTRY_NAME);
+
   fops.open = my_elev_proc_open;
   fops.read = my_elev_proc_read;
   fops.release = my_elev_proc_release;
