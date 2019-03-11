@@ -17,7 +17,7 @@
 
 
 MODULE_LICENSE("Dual BSD/GPL");
-MODULE_AUTHOR("Andrue Peters");
+MODULE_AUTHOR("Andrue Peters and Osar Flores");
 MODULE_DESCRIPTION("Keeps track of time since Unix EPOCH and last call");
 
 #define ENTRY_NAME "timed"
