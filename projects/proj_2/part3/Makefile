@@ -1,11 +1,16 @@
 ifneq ($(KERNELRELEASE),)
-	obj-m := my_elev.o
-	obj-y += passenger.o floor.o elevator.o
+	obj-m := elev_sched.o
+	#obj-y := passenger.o floor.o elevator.o
+	#my_elev-objs :=  passenger.o
+
+	elev_sched-y := my_elev.o passenger.o floor.o elevator.o
+
 else
 	KERNELDIR ?= /lib/modules/`uname -r`/build/
 	PWD := $(shell pwd)
 
 default:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) clean
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules
 endif
 
