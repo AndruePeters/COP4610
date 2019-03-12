@@ -41,7 +41,7 @@ int my_xtime_proc_open (struct inode *sp_inode, struct file *sp_file)
 {
   long elapsed_sec;
   long elapsed_nsec;
-  printk(KERN_INFO "proc called open\n");
+  printk(KERN_ALERT "proc called open\n");
   read_p = 1;
   message = kmalloc(sizeof(char) * ENTRY_SIZE, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
 
@@ -66,7 +66,6 @@ int my_xtime_proc_open (struct inode *sp_inode, struct file *sp_file)
 
 ssize_t my_xtime_proc_read(struct file *sp_file, char __user *buf, size_t size, loff_t *offset)
 {
-
   int len = strlen(message);
 
   read_p = !read_p;
