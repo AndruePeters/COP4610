@@ -1,5 +1,7 @@
 #include <linux/slab.h>
+#include <linux/kernel.h>
 #include <passenger.h>
+
 
 int my_elev_get_pass_load(int pass_type)
 {
@@ -62,13 +64,16 @@ struct my_elev_passenger* my_elev_new_passenger(int pass_type, int dest_floor)
     printk(KERN_WARNING "pass_type:%d\ndest_floor:%d", pass_type, dest_floor);
   }
 
-  ep = kmalloc( sizeof(struct my_elev_passenger), GFP_KERNEL);
+  ep = kmalloc( sizeof(struct my_elev_passenger), __GFP_RECLAIM);
   if (ep) {
     ep->pass_type = pass_type;
     ep->dest_floor = dest_floor;
+    INIT_LIST_HEAD(&ep->list);
   } else {
     printk(KERN_WARNING "my_elev_new_passenger kmalloc failed.\n");
   }
+
+  my_elev_print_pass(ep);
   return ep;
 }
 

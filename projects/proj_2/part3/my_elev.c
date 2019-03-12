@@ -13,10 +13,10 @@
 #include <linux/string.h>
 #include <linux/uaccess.h>
 #include <linux/time.h>
+#include <linux/random.h>
+#include <linux/kernel.h>
 
-MODULE_LICENSE("Dual BSD/GPL");
-MODULE_AUTHOR("Andrue Peters and Oscar Flores");
-MODULE_DESCRIPTION("Elevator scheduler");
+
 
 #include <passenger.h>
 #include <floor.h>
@@ -49,6 +49,7 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
     return -ENOMEM;
   }
   sprintf(message, "trial\n");
+  add_passenger(get_random_int() % 5, get_random_int() % 10, get_random_int() %10);
   return 0;
 }
 
@@ -94,3 +95,9 @@ static void my_elev_exit(void)
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
 }
 module_exit(my_elev_exit);
+
+
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Andrue Peters and Oscar Flores");
+MODULE_DESCRIPTION("Elevator scheduler");

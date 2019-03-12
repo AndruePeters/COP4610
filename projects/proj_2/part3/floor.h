@@ -30,7 +30,7 @@ void init_floors(void);
 /*
   Cleans up memory for the floors.
 */
-int cleanup_floors(void);
+void cleanup_floors(void);
 
 
 /*
@@ -47,6 +47,11 @@ int add_passenger(int passenger_type, int start_floor, int destination_floor);
 */
 struct my_elev_passenger* floor_get_passenger(int floor);
 
+
+/*
+  Print pasenger information waiting at each floor.
+*/
+void print_passengers(void);
 
 
 #endif

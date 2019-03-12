@@ -22,7 +22,7 @@ enum my_elev_pass_type {
 struct my_elev_passenger {
   enum my_elev_pass_type pass_type;
   int dest_floor;
-  struct list_head pass_list;
+  struct list_head list;
 };
 
 
