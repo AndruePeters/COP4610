@@ -24,7 +24,7 @@ int my_elev_get_pass_load(int pass_type)
       ret_load = 0 * LOAD_SCALE;
       break;
   }
-  return ret_load * LOAD_SCALE;
+  return ret_load;
 }
 
 int my_elev_get_pass_units(int pass_type)
