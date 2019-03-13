@@ -10,7 +10,7 @@
 #define LOAD_SCALE        (2)
 
 // Floor information
-#define BOTTOM_FLOOR      (1)
+#define MIN_FLOOR      (1)
 #define MAX_FLOOR         (10)
 
 // Elevator Information
