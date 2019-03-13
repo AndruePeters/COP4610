@@ -47,11 +47,16 @@ struct my_elevator {
 };
 
 
-
+extern struct my_elevator elev;
 
 /*
   Public Methods
 */
+
+/*
+  Initializes all values within an my_elevator struct.
+*/
+int init_my_elevator(void);
 
 /*
   Activates elevator service. From that point onward, the elevator exists
