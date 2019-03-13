@@ -26,12 +26,12 @@ struct floor {
   Initializes each list element in the floors array.
   Assumes array size of MAX_FLOOR
 */
-void init_floors(floor* f);
+void init_floors(struct floor* f);
 
 /*
   Cleans up memory for the floors.
 */
-void cleanup_floors(floor *f);
+void cleanup_floors(struct floor *f);
 
 
 /*
@@ -41,7 +41,7 @@ void cleanup_floors(floor *f);
 
   Called by issue_request in elev_mod.h as a system call.
 */
-int add_passenger(int passenger_type, int start_floor, int destination_floor, floor *f);
+int add_passenger(struct floor *f, int passenger_type, int start_floor, int destination_floor);
 
 /*
   Unlinks and returns the first passenger of the floor.
@@ -52,7 +52,7 @@ struct my_elev_passenger* floor_get_passenger(int floor);
 /*
   Print pasenger information waiting at each floor.
 */
-void print_floors(floor *f);
+void print_floors(struct floor *f);
 
 
 #endif

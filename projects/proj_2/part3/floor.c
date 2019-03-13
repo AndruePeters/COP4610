@@ -7,7 +7,7 @@
 /*
   Initialize each list head.
 */
-void init_floors(floor *f)
+void init_floors(struct floor *f)
 {
   int i;
   for (i = 0; i < MAX_FLOOR; ++i) {
@@ -19,7 +19,7 @@ void init_floors(floor *f)
 /*
   Cleanup memory for the floors.
 */
-void cleanup_floors(floor *f)
+void cleanup_floors(struct floor *f)
 {
 
 }
@@ -31,7 +31,7 @@ void cleanup_floors(floor *f)
 
   Called by issue_request in elev_mod.h as a system call.
 */
-int add_passenger(floor *f, int passenger_type, int start_floor, int destination_floor)
+int add_passenger(struct floor *f, int passenger_type, int start_floor, int destination_floor)
 {
   struct my_elev_passenger *ep = NULL;
   if (passenger_type >= NUM_PASS_TYPES ||
@@ -49,7 +49,7 @@ int add_passenger(floor *f, int passenger_type, int start_floor, int destination
 /*
   Print passenger information waiting at each floor.
 */
-void print_floors(floors *f)
+void print_floors(struct floor *f)
 {
   int i;
   struct my_elev_passenger *ep;
