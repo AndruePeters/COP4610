@@ -37,6 +37,7 @@ static struct file_operations fops;
 static char *message;
 static int read_p;
 
+struct my_elevator elev;
 
 int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
 {
@@ -49,7 +50,7 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
     printk(KERN_WARNING "my_elev_open\n");
     return -ENOMEM;
   }
-  add_passenger(get_random_int() % 5, get_random_int() % 10 + 1, get_random_int() %10 + 1);
+  add_passenger(elev.floors, get_random_int() % 5, get_random_int() % 10 + 1, get_random_int() %10 + 1);
   sprintf(message, "%d\n", i);
   ++i;
   return 0;
@@ -89,7 +90,7 @@ static int my_elev_init(void)
   }
 
   /* General initialization for other components */
-  init_floors();
+  init_my_elevator();
   return 0;
 }
 module_init(my_elev_init);
@@ -98,7 +99,7 @@ static void my_elev_exit(void)
 {
   remove_proc_entry(ENTRY_NAME, NULL);
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
-  print_floors();
+  print_floors(elev.floors);
 }
 module_exit(my_elev_exit);
 
