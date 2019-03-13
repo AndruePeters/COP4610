@@ -40,6 +40,7 @@ static int read_p;
 
 int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
 {
+  static int i = 0;
   printk(KERN_INFO "my_elev proc opened\n");
   read_p = 1;
 
@@ -48,8 +49,9 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
     printk(KERN_WARNING "my_elev_open\n");
     return -ENOMEM;
   }
-  sprintf(message, "trial\n");
-  add_passenger(get_random_int() % 5, get_random_int() % 10, get_random_int() %10);
+  add_passenger(get_random_int() % 5, get_random_int() % 10 + 1, get_random_int() %10 + 1);
+  sprintf(message, "%d\n", i);
+  ++i;
   return 0;
 }
 
@@ -85,6 +87,9 @@ static int my_elev_init(void)
     remove_proc_entry(ENTRY_NAME, NULL);
     return -ENOMEM;
   }
+
+  /* General initialization for other components */
+  init_floors();
   return 0;
 }
 module_init(my_elev_init);
@@ -93,6 +98,7 @@ static void my_elev_exit(void)
 {
   remove_proc_entry(ENTRY_NAME, NULL);
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
+  print_floors();
 }
 module_exit(my_elev_exit);
 
