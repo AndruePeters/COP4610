@@ -1,20 +1,17 @@
 #include <linux/list.h>
 #include <linux/kernel.h>
 #include <floor.h>
-/*
-  Global array to hold passengers at each floor.
-*/
-static struct floor floors[MAX_FLOOR];
+
 
 
 /*
   Initialize each list head.
 */
-void init_floors(void)
+void init_floors(floor *f)
 {
   int i;
   for (i = 0; i < MAX_FLOOR; ++i) {
-    INIT_LIST_HEAD(&(floors[i].pass_list));
+    INIT_LIST_HEAD(&(f[i].pass_list));
   }
   printk(KERN_INFO "Exited init_floors");
 }
@@ -22,7 +19,7 @@ void init_floors(void)
 /*
   Cleanup memory for the floors.
 */
-void cleanup_floors(void)
+void cleanup_floors(floor *f)
 {
 
 }
@@ -34,7 +31,7 @@ void cleanup_floors(void)
 
   Called by issue_request in elev_mod.h as a system call.
 */
-int add_passenger(int passenger_type, int start_floor, int destination_floor)
+int add_passenger(floor *f, int passenger_type, int start_floor, int destination_floor)
 {
   struct my_elev_passenger *ep = NULL;
   if (passenger_type >= NUM_PASS_TYPES ||
@@ -45,14 +42,14 @@ int add_passenger(int passenger_type, int start_floor, int destination_floor)
 
   printk(KERN_INFO "Adding passenger to floor: %d\n", start_floor);
   ep = my_elev_new_passenger(passenger_type, destination_floor);
-  list_add_tail(&ep->list, &floors[start_floor-1].pass_list);
+  list_add_tail(&ep->list, &f[start_floor-1].pass_list);
   return 0;
 }
 
 /*
   Print passenger information waiting at each floor.
 */
-void print_floors(void)
+void print_floors(floors *f)
 {
   int i;
   struct my_elev_passenger *ep;
@@ -60,7 +57,7 @@ void print_floors(void)
 
   for (i = 0; i < MAX_FLOOR; ++i) {
     printk(KERN_INFO "Floor %d\n", i+1);
-    list_for_each(temp, &floors[i].pass_list) {
+    list_for_each(temp, &f[i].pass_list) {
       my_elev_print_pass(list_entry(temp, struct my_elev_passenger, list));
     }
     printk(KERN_INFO "\n\n");
