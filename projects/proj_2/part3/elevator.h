@@ -8,8 +8,8 @@
 #include <linux/list.h>
 
 
-#include "passenger.h"
-#include "floor.h"
+#include <passenger.h>
+#include <floor.h>
 
 
 #define MAX_PASSENGERS (10)
@@ -37,9 +37,12 @@ enum my_elev_state {
 
 */
 struct my_elevator {
-  int passengers;
-  int load;
+  int num_passengers;
+  int total_load;
+  int curr_floor;
+  int total_passengers;
   enum my_elev_state state;
+  struct floor floors[MAX_FLOOR];
   struct list_head pass_list;
 };
 
