@@ -43,9 +43,9 @@ int add_passenger(int passenger_type, int start_floor, int destination_floor)
         return 1;
       }
 
+  printk(KERN_INFO "Adding passenger to floor: %d\n", start_floor);
   ep = my_elev_new_passenger(passenger_type, destination_floor);
-  printk(KERN_INFO "Attempting to call list_add_tail.\n");
-  list_add_tail(&ep->list, &floors[start_floor].pass_list);
+  list_add_tail(&ep->list, &floors[start_floor-1].pass_list);
   return 0;
 }
 
@@ -59,8 +59,10 @@ void print_floors(void)
   struct list_head *temp;
 
   for (i = 0; i < MAX_FLOOR; ++i) {
+    printk(KERN_INFO "Floor %d\n", i+1);
     list_for_each(temp, &floors[i].pass_list) {
       my_elev_print_pass(list_entry(temp, struct my_elev_passenger, list));
     }
+    printk(KERN_INFO "\n\n");
   }
 }
