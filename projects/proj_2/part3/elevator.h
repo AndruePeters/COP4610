@@ -79,8 +79,41 @@ int stop_elevator(void);
 
 /*
   Private Methods
+  Placed here only for easy documentation.
+*/
+
+/*
+  Sleeps for the specified amount of time.
 */
 void my_elev_sleep(int time);
+
+/*
+  Moves to specified floor.
+*/
+void my_elev_move_to_floor(int floor);
+
+/*
+  Goes up a single floor.
+  Does nothing if floor == MAX_FLOOR
+*/
+void my_elev_up_floor(void);
+
+/*
+  Goes down a single floor.
+  Does nothing if floor == 1
+*/
+void my_elev_down_floor(void);
+
+/*
+  Unloads all available people at current floor.
+*/
+void my_elev_unload(void);
+
+/*
+  Loads all available people at current floor.
+*/
+void my_elev_load(void);
+
 
 
 #endif
