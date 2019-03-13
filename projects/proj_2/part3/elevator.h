@@ -10,15 +10,9 @@
 
 #include <passenger.h>
 #include <floor.h>
+#include <my_elev_config.h>
 
 
-#define MAX_PASSENGERS (10)
-//#define LOAD_SCALE (2)
-#define MAX_LOAD       (15 * LOAD_SCALE)
-#define BOTTOM_FLOOR (1)
-#define TOP_FLOOR (10)
-#define TIME_BTW_FLOORS (2)
-#define TIM_BTW_PASSENGER (1)
 
 
 enum my_elev_state {

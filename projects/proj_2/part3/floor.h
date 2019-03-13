@@ -8,7 +8,8 @@
 
 #include <linux/list.h>
 #include <passenger.h>
-#define MAX_FLOOR (10)
+#include <my_elev_config.h>
+
 /*
   Stores passengers.
 */
