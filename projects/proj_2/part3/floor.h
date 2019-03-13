@@ -51,7 +51,7 @@ struct my_elev_passenger* floor_get_passenger(int floor);
 /*
   Print pasenger information waiting at each floor.
 */
-void print_passengers(void);
+void print_floors(void);
 
 
 #endif

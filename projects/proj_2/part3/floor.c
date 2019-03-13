@@ -1,4 +1,5 @@
 #include <linux/list.h>
+#include <linux/kernel.h>
 #include <floor.h>
 /*
   Global array to hold passengers at each floor.
@@ -13,8 +14,9 @@ void init_floors(void)
 {
   int i;
   for (i = 0; i < MAX_FLOOR; ++i) {
-    INIT_LIST_HEAD(&(floors->pass_list));
+    INIT_LIST_HEAD(&(floors[i].pass_list));
   }
+  printk(KERN_INFO "Exited init_floors");
 }
 
 /*
@@ -42,6 +44,7 @@ int add_passenger(int passenger_type, int start_floor, int destination_floor)
       }
 
   ep = my_elev_new_passenger(passenger_type, destination_floor);
+  printk(KERN_INFO "Attempting to call list_add_tail.\n");
   list_add_tail(&ep->list, &floors[start_floor].pass_list);
   return 0;
 }
@@ -49,7 +52,7 @@ int add_passenger(int passenger_type, int start_floor, int destination_floor)
 /*
   Print passenger information waiting at each floor.
 */
-void print_passengers(void)
+void print_floors(void)
 {
   int i;
   struct my_elev_passenger *ep;
