@@ -24,6 +24,7 @@ int init_my_elevator(void)
   init_floors(elev.floors);
   INIT_LIST_HEAD(&elev.pass_list);
   mutex_init(&elev.mtx);
+  mutex_unlock(&elev.mtx);
   return 0;
 }
 
@@ -50,8 +51,11 @@ int start_elevator(void)
 int issue_request(int passenger_type, int start_floor, int destination_floor)
 {
   int ret;
-  if (mutex_lock_interruptible(&elev.mtx)) {
-    ret =  add_passenger(&elev.floors, passenger_type, start_floor, destination_floor);
+  if (mutex_lock_interruptible(&elev.mtx) == 0) {
+    printk(KERN_INFO "calling add_passenger()\n");
+    ret =  add_passenger(elev.floors, passenger_type, start_floor, destination_floor);
+  } else {
+    printk(KERN_WARNING "Can't aquare lock in issue_request\n");
   }
   mutex_unlock(&elev.mtx);
   return ret;
@@ -92,7 +96,7 @@ void my_elev_move_to_floor(int floor)
 */
 void my_elev_up_floor(void)
 {
-  if (mutex_lock_interruptible(&elev.mtx)) {
+  if (mutex_lock_interruptible(&elev.mtx) == 0) {
     if (elev.curr_floor == MAX_FLOOR) {
       return;
     }
@@ -109,7 +113,7 @@ void my_elev_up_floor(void)
 */
 void my_elev_down_floor(void)
 {
-  if (mutex_lock_interruptible(&elev.mtx)) {
+  if (mutex_lock_interruptible(&elev.mtx) == 0) {
     if (elev.curr_floor == MIN_FLOOR) {
       return;
     }
@@ -132,7 +136,7 @@ void my_elev_unload(void)
   struct list_head *pos, *pos_next;
   struct my_elev_passenger *ep  = NULL;
 
-  if (mutex_lock_interruptible(&elev.mtx)) {
+  if (mutex_lock_interruptible(&elev.mtx) == 0) {
     list_for_each_safe(pos, pos_next, &elev.pass_list) {
       ep = list_entry(pos, struct my_elev_passenger, list);
       if (ep->dest_floor == elev.curr_floor) {
@@ -158,7 +162,7 @@ void my_elev_load(void)
   struct my_elev_passenger *ep = NULL;
   int pass_units, pass_load;
 
-  if (mutex_lock_interruptible(&elev.mtx)) {
+  if (mutex_lock_interruptible(&elev.mtx) == 0) {
     list_for_each_safe(pos, pos_next, &(elev.floors[elev.curr_floor - 1].pass_list)) {
       ep = list_entry(pos, struct my_elev_passenger, list);
       pass_units = my_elev_get_pass_units(ep->pass_type);
@@ -185,12 +189,13 @@ void my_elev_load(void)
 */
 char* my_elev_dump_info(void)
 {
+  printk(KERN_INFO "in my_elev_dump_info()\n");
   char *msg, *floor_buff;
   int num_floor_pass[MAX_FLOOR], i;
 
   msg = kmalloc(sizeof(char) * 550, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
 
-  if (mutex_lock_interruptible(&elev.mtx)) {
+  if (mutex_lock_interruptible(&elev.mtx) == 0) {
     if (!msg) {
       printk(KERN_WARNING "Unable to allocate in my_elev_dump_info\n");
       msg = NULL;
@@ -200,7 +205,7 @@ char* my_elev_dump_info(void)
                     "Current Floor: %d\n"
                     "Next Floor: %d\n"
                     "Curr Load: %d\n", my_elev_state(), elev.curr_floor, 0, elev.total_load);
-
+      printk(KERN_INFO "msg before floor: %s", msg);
       // get the number of waiting passengers for each floor and create string and then append
       for (i=0; i < MAX_FLOOR; ++i) {
         num_floor_pass[i] = get_load_pass_floor(&elev.floors[i]);
@@ -231,13 +236,16 @@ char* my_elev_dump_info(void)
 const char* my_elev_state(void)
 {
   char *state;
-  switch(elev.state) {
-    case MY_ELEV_OFFLINE: state = "OFFLINE"; break;
-    case MY_ELEV_IDLE: state = "IDLE"; break;
-    case MY_ELEV_LOADING: state = "LOADING"; break;
-    case MY_ELEV_UP: state = "UP"; break;
-    case MY_ELEV_DOWN: state = "DOWN"; break;
-    default: state = NULL; break;
+  if (mutex_lock_interruptible(&elev.mtx) == 0) {
+    switch(elev.state) {
+      case MY_ELEV_OFFLINE: state = "OFFLINE"; break;
+      case MY_ELEV_IDLE: state = "IDLE"; break;
+      case MY_ELEV_LOADING: state = "LOADING"; break;
+      case MY_ELEV_UP: state = "UP"; break;
+      case MY_ELEV_DOWN: state = "DOWN"; break;
+      default: state = NULL; break;
+    }
   }
+  mutex_unlock(&elev.mtx);
   return state;
 }
