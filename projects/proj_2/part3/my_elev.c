@@ -50,7 +50,8 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
     printk(KERN_WARNING "my_elev_open\n");
     return -ENOMEM;
   }
-  add_passenger(elev.floors, get_random_int() % 5, get_random_int() % 10 + 1, get_random_int() %10 + 1);
+  //add_passenger(elev.floors, get_random_int() % 5, get_random_int() % 10 + 1, get_random_int() %10 + 1);
+  add_passenger(elev.floors, 1, 7, get_random_int() % 10 + 1);
   sprintf(message, "%d\n", i);
   ++i;
   return 0;
@@ -100,7 +101,7 @@ static void my_elev_exit(void)
   remove_proc_entry(ENTRY_NAME, NULL);
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
   printk(KERN_INFO "Removing all on floor 7\n\n");
-  elev.curr_floor = 6;
+  elev.curr_floor = 7;
   my_elev_load();
    my_elev_unload();
   print_floors(elev.floors);
