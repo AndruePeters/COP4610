@@ -6,7 +6,7 @@
 #ifndef _GROUP_15_ELEV_MOD_H_
 #define _GROUP_15_ELEV_MOD_H_
 #include <linux/list.h>
-
+#include <linux/mutex.h>
 
 #include <passenger.h>
 #include <floor.h>
@@ -38,6 +38,7 @@ struct my_elevator {
   enum my_elev_state state;
   struct floor floors[MAX_FLOOR];
   struct list_head pass_list;
+  struct mutex mtx;
 };
 
 
