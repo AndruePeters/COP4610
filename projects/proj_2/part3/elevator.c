@@ -28,6 +28,46 @@ int init_my_elevator(void)
 }
 
 /*
+  Activates elevator service. From that point onward, the elevator exists
+  and will begin to service requests. This system call will return 1 if the
+  elevator is already active, 0 for a successful elevator start, and -ERRORNUM
+  if it could not initialize (e.g. -ENOMEM if it couldn't allocate memory.)
+  Initialize elvator as follows:
+      State: idle
+      current floor: 1
+      current load 0 units, 0 weight
+*/
+int start_elevator(void)
+{
+
+}
+
+/*
+  Creates a passenger of type passenger_type at start_floor that wishes to go
+  to destination_floor. This function returns 1 if the request is not valid
+  (one of the variables is out of range), and 0 otherwise.
+*/
+int issue_request(int passenger_type, int start_floor, int destination_floor)
+{
+  int ret;
+  if (mutex_lock_interruptible(&elev.mtx)) {
+    ret =  add_passenger(&elev.floors, passenger_type, start_floor, destination_floor);
+  }
+  mutex_unlock(&elev.mtx);
+  return ret;
+}
+
+/*
+  Deactivates elevator. At this point, the elevator will process no more requests.
+  However, it has to offload all of its current passengers.
+*/
+int stop_elevator(void)
+{
+
+}
+
+
+/*
   Sleeps for a specified amount of time.
   To be used while loading and unloading passengers and moving floors.
   time is in seconds.
@@ -60,6 +100,7 @@ void my_elev_up_floor(void)
     my_elev_sleep(TIME_BTW_FLOORS);
     ++elev.curr_floor;
   }
+  mutex_unlock(&elev.mtx);
 }
 
 /*
@@ -76,6 +117,7 @@ void my_elev_down_floor(void)
     my_elev_sleep(TIME_BTW_FLOORS);
     --elev.curr_floor;
   }
+  mutex_unlock(&elev.mtx);
 }
 
 /*
@@ -101,6 +143,7 @@ void my_elev_unload(void)
       }
     }
   }
+  mutex_unlock(&elev.mtx);
 }
 
 /*
@@ -130,6 +173,7 @@ void my_elev_load(void)
       }
     }
   }
+  mutex_unlock(&elev.mtx);
 }
 
 /*
@@ -146,17 +190,37 @@ char* my_elev_dump_info(void)
 
   msg = kmalloc(sizeof(char) * 550, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
 
+  if (mutex_lock_interruptible(&elev.mtx)) {
+    if (!msg) {
+      printk(KERN_WARNING "Unable to allocate in my_elev_dump_info\n");
+      msg = NULL;
+    } else {
+      // form first part of printed string
+      sprintf(msg, "Elevator State: %s\n"
+                    "Current Floor: %d\n"
+                    "Next Floor: %d\n"
+                    "Curr Load: %d\n", my_elev_state(), elev.curr_floor, 0, elev.total_load);
 
-  if (!msg) {
-    printk(KERN_WARNING "Unable to allocate in my_elev_dump_info\n");
-    msg = NULL;
-  } else {
-    // get the number of waiting passengers for each floor.
-    for (i=0; i < MAX_FLOOR; ++i) {
-      num_floor_pass[i] = get_load_pass_floor(&elev.floors[i]);
+      // get the number of waiting passengers for each floor and create string and then append
+      for (i=0; i < MAX_FLOOR; ++i) {
+        num_floor_pass[i] = get_load_pass_floor(&elev.floors[i]);
+        floor_buff = kmalloc(sizeof(char) * 50, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+
+        if (!floor_buff) {
+          printk(KERN_WARNING "floor_buff couldn't be allocated\n");
+          kfree(msg);
+          msg = NULL;
+          break;
+        } else {
+          sprintf(floor_buff, "Floor %d\n\tLoad: %d\n\t#Pass Serviced: %d\n",
+                  i+1, get_load_pass_floor(&elev.floors[i]), elev.floors[i].num_pass_serviced);
+          strcat(msg, floor_buff);
+          kfree(floor_buff);
+        }
+      }
     }
   }
-
+  mutex_unlock(&elev.mtx);
   return msg;
 }
 
