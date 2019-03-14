@@ -141,10 +141,11 @@ void my_elev_load(void)
 */
 char* my_elev_dump_info(void)
 {
-  char *msg;
+  char *msg, *floor_buff;
   int num_floor_pass[MAX_FLOOR], i;
 
   msg = kmalloc(sizeof(char) * 550, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+
 
   if (!msg) {
     printk(KERN_WARNING "Unable to allocate in my_elev_dump_info\n");
