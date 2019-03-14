@@ -39,6 +39,9 @@ static int read_p;
 
 struct my_elevator elev;
 
+/*
+  Runs when file has been opened.
+*/
 int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
 {
   static int i = 0;
@@ -50,14 +53,19 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
     printk(KERN_WARNING "my_elev_open\n");
     return -ENOMEM;
   }
-  //add_passenger(elev.floors, get_random_int() % 5, get_random_int() % 10 + 1, get_random_int() %10 + 1);
-  add_passenger(elev.floors, 1, 7, get_random_int() % 10 + 1);
+
+  if (mutex_lock_interruptible(&elev.mtx)) {
+
+  }
+
   sprintf(message, "%d\n", i);
   ++i;
   return 0;
 }
 
-
+/*
+  Runs when the file is being read. (I think. Slightly confused by order of operations.)
+*/
 ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, loff_t *offset)
 {
   int len = strlen(message);
@@ -69,6 +77,10 @@ ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, l
   return len;
 }
 
+/*
+  Runs after proc file has been released.
+  Frees memory previously allocated to global char *message.
+*/
 int my_elev_proc_release(struct inode *sp_inode, struct file *sp_file)
 {
   printk(KERN_INFO "my_elev proc called release\n");
@@ -76,6 +88,9 @@ int my_elev_proc_release(struct inode *sp_inode, struct file *sp_file)
   return 0;
 }
 
+/*
+  init function for elevator module.
+*/
 static int my_elev_init(void)
 {
   printk(KERN_NOTICE "/proc/%s create\n", ENTRY_NAME);
@@ -96,15 +111,13 @@ static int my_elev_init(void)
 }
 module_init(my_elev_init);
 
+/*
+  Exit function for elevator module.
+*/
 static void my_elev_exit(void)
 {
   remove_proc_entry(ENTRY_NAME, NULL);
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
-  printk(KERN_INFO "Removing all on floor 7\n\n");
-  elev.curr_floor = 7;
-  my_elev_load();
-   my_elev_unload();
-  print_floors(elev.floors);
 }
 module_exit(my_elev_exit);
 
