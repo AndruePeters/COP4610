@@ -115,6 +115,15 @@ void my_elev_unload(void);
 */
 void my_elev_load(void);
 
+/*
+  Returns string with information for elevator.
+  To be written to proc. Make sure it is freed after use.
+*/
+char* my_elev_dump_info(void);
 
-
+/*
+  Returns the state of the elevator.
+  Returns a const pointer, so don't try freeing it.
+*/
+const char* my_elev_state(void);
 #endif
