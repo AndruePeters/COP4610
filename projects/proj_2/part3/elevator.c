@@ -126,7 +126,53 @@ void my_elev_load(void)
             list_move_tail(pos, &elev.pass_list);
             elev.num_passengers += pass_units;
             elev.total_load += pass_load;
+            elev.floors[elev.curr_floor-1].num_pass_serviced += my_elev_get_pass_units(pass_units);
       }
     }
   }
+}
+
+/*
+  Returns string with information for elevator.
+  To be written to proc. Make sure it is freed after use.
+
+  Adding every entry comes out to under 550 characters.
+  Exactly 534, but using a few extra bytes as a buffer.
+*/
+char* my_elev_dump_info(void)
+{
+  char *msg;
+  int num_floor_pass[MAX_FLOOR], i;
+
+  msg = kmalloc(sizeof(char) * 550, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+
+  if (!msg) {
+    printk(KERN_WARNING "Unable to allocate in my_elev_dump_info\n");
+    msg = NULL;
+  } else {
+    // get the number of waiting passengers for each floor.
+    for (i=0; i < MAX_FLOOR; ++i) {
+      num_floor_pass[i] = get_load_pass_floor(&elev.floors[i]);
+    }
+  }
+
+  return msg;
+}
+
+/*
+  Returns the state of the elevator.
+  Returns a const pointer, so don't try freeing it.
+*/
+const char* my_elev_state(void)
+{
+  char *state;
+  switch(elev.state) {
+    case MY_ELEV_OFFLINE: state = "OFFLINE"; break;
+    case MY_ELEV_IDLE: state = "IDLE"; break;
+    case MY_ELEV_LOADING: state = "LOADING"; break;
+    case MY_ELEV_UP: state = "UP"; break;
+    case MY_ELEV_DOWN: state = "DOWN"; break;
+    default: state = NULL; break;
+  }
+  return state;
 }
