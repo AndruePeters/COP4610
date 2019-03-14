@@ -18,6 +18,7 @@
   List of passengers on each floor.
 */
 struct floor {
+  unsigned num_pass_serviced;
   struct list_head pass_list;
 };
 
@@ -53,7 +54,17 @@ struct my_elev_passenger* floor_get_passenger(int floor);
 /*
   Print pasenger information waiting at each floor.
 */
-void print_floors(struct floor *f);
+void print_floors(const struct floor *f);
+
+/*
+  Gets number of waiting passengers one ach floor.
+*/
+int get_num_pass_floor(const struct floor *f);
+
+/*
+  Gets load of waiting passengers on a specific floor.
+*/
+int get_load_pass_floor(const struct floor *f);
 
 
 #endif

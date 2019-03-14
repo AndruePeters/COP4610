@@ -12,6 +12,7 @@ void init_floors(struct floor *f)
   int i;
   for (i = 0; i < MAX_FLOOR; ++i) {
     INIT_LIST_HEAD(&(f[i].pass_list));
+    f[i].num_pass_serviced = 0;
   }
   printk(KERN_INFO "Exited init_floors");
 }
@@ -48,8 +49,9 @@ int add_passenger(struct floor *f, int passenger_type, int start_floor, int dest
 
 /*
   Print passenger information waiting at each floor.
+  This accepts an array of floors, but the size is determined by MAX_FLOOR
 */
-void print_floors(struct floor *f)
+void print_floors(const struct floor *f)
 {
   int i;
   struct my_elev_passenger *ep;
@@ -62,4 +64,37 @@ void print_floors(struct floor *f)
     }
     printk(KERN_INFO "\n\n");
   }
+}
+
+
+/*
+  Gets number of waiting passengers one ach floor.
+*/
+int get_num_pass_floor(const struct floor *f)
+{
+  int num_pass = 0;
+  struct my_elev_passenger *ep;
+  struct list_head *temp;
+
+  list_for_each(temp, &f->pass_list) {
+    ep = list_entry(temp, struct my_elev_passenger, list);
+    num_pass += my_elev_get_pass_units(ep->pass_type);
+  }
+  return num_pass;
+}
+
+/*
+  Gets load of waiting passengers on a specific floor.
+*/
+int get_load_pass_floor(const struct floor *f)
+{
+  int pass_load = 0;
+  struct my_elev_passenger *ep;
+  struct list_head *temp;
+
+  list_for_each(temp, &f->pass_list) {
+    ep = list_entry(temp, struct my_elev_passenger, list);
+    pass_load += my_elev_get_pass_load(ep->pass_type);
+  }
+  return pass_load;
 }
