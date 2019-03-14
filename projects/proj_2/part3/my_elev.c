@@ -48,18 +48,15 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
   printk(KERN_INFO "my_elev proc opened\n");
   read_p = 1;
 
-  message = kmalloc(sizeof(char) * ENTRY_SIZE, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
+  issue_request(1 + get_random_int() % 5, 1 + get_random_int() % 10, 1 + get_random_int() % 10);
+  message = my_elev_dump_info();
   if (!message) {
     printk(KERN_WARNING "my_elev_open\n");
     return -ENOMEM;
   }
+  printk(KERN_INFO "%s", message);
 
-  if (mutex_lock_interruptible(&elev.mtx)) {
 
-  }
-
-  sprintf(message, "%d\n", i);
-  ++i;
   return 0;
 }
 
@@ -83,6 +80,9 @@ ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, l
 */
 int my_elev_proc_release(struct inode *sp_inode, struct file *sp_file)
 {
+  my_elev_unload();
+  elev.curr_floor = get_random_int() % 10 + 1;
+  my_elev_load();
   printk(KERN_INFO "my_elev proc called release\n");
   kfree(message);
   return 0;
