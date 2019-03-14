@@ -99,6 +99,10 @@ static void my_elev_exit(void)
 {
   remove_proc_entry(ENTRY_NAME, NULL);
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
+  printk(KERN_INFO "Removing all on floor 7\n\n");
+  elev.curr_floor = 6;
+  my_elev_load();
+   my_elev_unload();
   print_floors(elev.floors);
 }
 module_exit(my_elev_exit);
