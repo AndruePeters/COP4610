@@ -15,6 +15,7 @@
 #include <linux/time.h>
 #include <linux/random.h>
 #include <linux/kernel.h>
+#include <linux/kthread.h>
 
 
 
@@ -38,13 +39,13 @@ static char *message;
 static int read_p;
 
 struct my_elevator elev;
+struct task_struct *thread_elev_sched;
 
 /*
   Runs when file has been opened.
 */
 int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
 {
-  static int i = 0;
   printk(KERN_INFO "my_elev proc opened\n");
   read_p = 1;
 
@@ -54,9 +55,6 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
     printk(KERN_WARNING "my_elev_open\n");
     return -ENOMEM;
   }
-  printk(KERN_INFO "%s", message);
-
-
   return 0;
 }
 
@@ -69,7 +67,6 @@ ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, l
   read_p = !read_p;
   if (read_p) return 0;
 
-  printk(KERN_INFO "my_elev proc called read\n");
   copy_to_user(buf, message, len);
   return len;
 }
@@ -80,9 +77,6 @@ ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, l
 */
 int my_elev_proc_release(struct inode *sp_inode, struct file *sp_file)
 {
-  my_elev_unload(&elev);
-  elev.curr_floor = get_random_int() % 10 + 1;
-  my_elev_load(&elev);
   printk(KERN_INFO "my_elev proc called release\n");
   kfree(message);
   return 0;
@@ -99,6 +93,8 @@ static int my_elev_init(void)
   fops.read = my_elev_proc_read;
   fops.release = my_elev_proc_release;
 
+
+
   if (!proc_create(ENTRY_NAME, PERMS, NULL, &fops)) {
     printk("ERROR! proc_create\n");
     remove_proc_entry(ENTRY_NAME, NULL);
@@ -107,6 +103,13 @@ static int my_elev_init(void)
 
   /* General initialization for other components */
   init_my_elevator(&elev);
+  thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
+  printk(KERN_WARNING "global elev: %px\n", &elev);
+  if (IS_ERR(thread_elev_sched)) {
+    printk(KERN_WARNING "error spwaning thread\n");
+    remove_proc_entry(ENTRY_NAME, NULL);
+    return PTR_ERR(thread_elev_sched);
+  }
   return 0;
 }
 module_init(my_elev_init);
@@ -116,7 +119,9 @@ module_init(my_elev_init);
 */
 static void my_elev_exit(void)
 {
+  kthread_stop(thread_elev_sched);
   remove_proc_entry(ENTRY_NAME, NULL);
+  mutex_destroy(&elev.mtx);
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
 }
 module_exit(my_elev_exit);
