@@ -18,4 +18,11 @@
 #define TIME_BTW_FLOORS   (2)
 #define TIM_BTW_PASSENGER (1)
 
+
+
+#define ENTRY_NAME "my_elev"
+#define ENTRY_SIZE 100
+#define PERMS 0644
+#define PARENT NULL
+
 #endif

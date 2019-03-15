@@ -22,13 +22,6 @@
 #include "elevator.h"
 
 
-
-
-#define ENTRY_NAME "my_elev"
-#define ENTRY_SIZE 100
-#define PERMS 0644
-#define PARENT NULL
-
 // points to proc file definitions
 static struct file_operations fops;
 

@@ -8,9 +8,12 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/kthread.h>
+#include <linux/proc_fs.h>
 #include "elevator.h"
 
 extern struct task_struct *thread_elev_sched;
+
+
 
 /*
   Initializes extern struct my_elevator elev to default values.
@@ -23,7 +26,7 @@ int init_my_elevator(struct my_elevator *elev)
   elev->total_passengers = 0;
   elev->state = MY_ELEV_IDLE;
   init_floors(elev->floors);
-  init = 1;
+  elev->init = 1;
   INIT_LIST_HEAD(&elev->pass_list);
   mutex_init(&(elev->mtx));
   mutex_unlock(&(elev->mtx));
