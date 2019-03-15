@@ -54,7 +54,6 @@ int add_passenger(struct floor *f, int passenger_type, int start_floor, int dest
 void print_floors(const struct floor *f)
 {
   int i;
-  struct my_elev_passenger *ep;
   struct list_head *temp;
 
   for (i = 0; i < MAX_FLOOR; ++i) {
