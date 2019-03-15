@@ -270,6 +270,7 @@ char* my_elev_dump_info(struct my_elevator *elev)
       msg = NULL;
     } else {
       // form first part of printed string
+      printk(KERN_WARNING "Foramtting string\n");
       sprintf(msg, "Elevator State: %s\n"
                     "Current Floor: %d\n"
                     "Next Floor: %d\n"
