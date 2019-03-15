@@ -12,7 +12,7 @@
 #include "elevator.h"
 
 extern struct task_struct *thread_elev_sched;
-
+bool has_been_init = false;
 
 
 /*
@@ -26,7 +26,6 @@ int init_my_elevator(struct my_elevator *elev)
   elev->total_passengers = 0;
   elev->state = MY_ELEV_IDLE;
   init_floors(elev->floors);
-  elev->init = 1;
   INIT_LIST_HEAD(&elev->pass_list);
   mutex_init(&(elev->mtx));
   mutex_unlock(&(elev->mtx));
@@ -46,19 +45,22 @@ int init_my_elevator(struct my_elevator *elev)
 long my_elev_start_elevator(void)
 {
   long ret = 0;
-  if (elev.init == 0) {
+  if (has_been_init == false) {
+    has_been_init = true;
     init_my_elevator(&elev);
     thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
-    printk(KERN_WARNING "global elev: %px\n", &elev);
 
     if (IS_ERR(thread_elev_sched)) {
       printk(KERN_WARNING "error spwaning thread\n");
       remove_proc_entry(ENTRY_NAME, NULL);
       return PTR_ERR(thread_elev_sched);
     }
+  } else if (has_been_init && my_elev_get_state(&elev) == MY_ELEV_OFFLINE) {
+    ret = 1;
   } else {
     ret = 1;
   }
+
   return ret;
 }
 
