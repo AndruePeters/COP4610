@@ -306,6 +306,7 @@ char* my_elev_dump_info(struct my_elevator *elev)
 const char* my_elev_state_char(struct my_elevator *elev)
 {
   char *state;
+  printk(KERN_WARNING "Entered my_elev_state_char\n");
   if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
     switch(elev->state) {
       case MY_ELEV_OFFLINE: state = "OFFLINE"; break;
