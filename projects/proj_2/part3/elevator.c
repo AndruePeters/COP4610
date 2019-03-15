@@ -39,9 +39,9 @@ int init_my_elevator(struct my_elevator *elev)
       current floor: 1
       current load 0 units, 0 weight
 */
-int start_elevator(void)
+int my_elev_start_elevator(void)
 {
-
+  printk(KERN_WARNING "System call successful\n");
 }
 
 /*
@@ -49,7 +49,7 @@ int start_elevator(void)
   to destination_floor. This function returns 1 if the request is not valid
   (one of the variables is out of range), and 0 otherwise.
 */
-int issue_request(int passenger_type, int start_floor, int destination_floor)
+int my_elev_issue_request(int passenger_type, int start_floor, int destination_floor)
 {
   int ret = 1;
   if (mutex_lock_interruptible(&(elev.mtx)) == 0) {
@@ -75,7 +75,7 @@ int issue_request(int passenger_type, int start_floor, int destination_floor)
   Deactivates elevator. At this point, the elevator will process no more requests.
   However, it has to offload all of its current passengers.
 */
-int stop_elevator(void)
+int my_elev_stop_elevator(void)
 {
 
 }
@@ -98,7 +98,6 @@ int my_elev_scheduler(void *e)
       continue;
     }
 
-    printk(KERN_INFO "current state: %s\ncurrent state: %d\n", my_elev_state_char(elev), my_elev_get_state(elev));
     //printk(KERN_WARNING "IN THREAD\n");
     my_elev_unload(elev);
     my_elev_load(elev);
