@@ -16,6 +16,7 @@
 #include <linux/random.h>
 #include <linux/kernel.h>
 #include <linux/kthread.h>
+#include <linux/syscalls.h>
 
 
 #include "elevator.h"
@@ -38,6 +39,7 @@ static int read_p;
 struct my_elevator elev;
 struct task_struct *thread_elev_sched;
 
+extern long (*start_elevator)(void);
 /*
   Runs when file has been opened.
 */
@@ -46,7 +48,6 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
   printk(KERN_INFO "my_elev proc opened\n");
   read_p = 1;
 
-  issue_request(1 + get_random_int() % 5, 1 + get_random_int() % 10, 1 + get_random_int() % 10);
   message = my_elev_dump_info(&elev);
   if (!message) {
     printk(KERN_WARNING "my_elev_open\n");
@@ -99,6 +100,9 @@ static int my_elev_init(void)
   }
 
   /* General initialization for other components */
+  start_elevator = my_elev_start_elevator;
+  my_elev_start_elevator();
+
   init_my_elevator(&elev);
   thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
   printk(KERN_WARNING "global elev: %px\n", &elev);
