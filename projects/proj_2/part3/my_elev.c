@@ -49,7 +49,7 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
   read_p = 1;
 
   issue_request(1 + get_random_int() % 5, 1 + get_random_int() % 10, 1 + get_random_int() % 10);
-  message = my_elev_dump_info();
+  message = my_elev_dump_info(&elev);
   if (!message) {
     printk(KERN_WARNING "my_elev_open\n");
     return -ENOMEM;
@@ -80,9 +80,9 @@ ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, l
 */
 int my_elev_proc_release(struct inode *sp_inode, struct file *sp_file)
 {
-  my_elev_unload();
+  my_elev_unload(&elev);
   elev.curr_floor = get_random_int() % 10 + 1;
-  my_elev_load();
+  my_elev_load(&elev);
   printk(KERN_INFO "my_elev proc called release\n");
   kfree(message);
   return 0;
@@ -106,7 +106,7 @@ static int my_elev_init(void)
   }
 
   /* General initialization for other components */
-  init_my_elevator();
+  init_my_elevator(&elev);
   return 0;
 }
 module_init(my_elev_init);
