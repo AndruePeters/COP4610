@@ -107,7 +107,7 @@ static int my_elev_init(void)
   stop_elevator = my_elev_stop_elevator;
   my_elev_start_elevator();
 
-  init_my_elevator(&elev);
+
   thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
   printk(KERN_WARNING "global elev: %px\n", &elev);
   if (IS_ERR(thread_elev_sched)) {

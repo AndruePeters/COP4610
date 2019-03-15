@@ -35,6 +35,7 @@ struct my_elevator {
   int total_load;
   int curr_floor;
   int total_passengers;
+  int init;
   enum my_elev_state state;
   struct floor floors[MAX_FLOOR];
   struct list_head pass_list;

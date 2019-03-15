@@ -23,6 +23,7 @@ int init_my_elevator(struct my_elevator *elev)
   elev->total_passengers = 0;
   elev->state = MY_ELEV_IDLE;
   init_floors(elev->floors);
+  init = 1;
   INIT_LIST_HEAD(&elev->pass_list);
   mutex_init(&(elev->mtx));
   mutex_unlock(&(elev->mtx));
@@ -41,7 +42,13 @@ int init_my_elevator(struct my_elevator *elev)
 */
 long my_elev_start_elevator(void)
 {
-  printk(KERN_WARNING "System call successful\n");
+  long ret = 0;
+  if (elev.init == 0) {
+    init_my_elevator(&elev);
+  } else {
+    ret = 1;
+  }
+  return ret;
 }
 
 /*
