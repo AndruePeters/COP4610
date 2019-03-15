@@ -86,7 +86,7 @@ int stop_elevator(void);
 /*
   Main thread that runs in order to actually schedule the elevator.
 */
-void my_elev_scheduler(struct my_elevator *e);
+int my_elev_scheduler(void *e);
 
 /*
   Sleeps for the specified amount of time.
