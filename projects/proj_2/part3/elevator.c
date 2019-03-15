@@ -46,6 +46,7 @@ long my_elev_start_elevator(void)
 {
   long ret = 0;
   if (has_been_init == false) {
+    printk(KERN_WARNING "ENTERED START ELEVATOR\n");
     has_been_init = true;
     init_my_elevator(&elev);
     thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
