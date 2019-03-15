@@ -107,7 +107,7 @@ static int my_elev_init(void)
   start_elevator = my_elev_start_elevator;
   issue_request = my_elev_issue_request;
   stop_elevator = my_elev_stop_elevator;
-
+  my_elev_start_elevator(&elev);
   return 0;
 }
 module_init(my_elev_init);
