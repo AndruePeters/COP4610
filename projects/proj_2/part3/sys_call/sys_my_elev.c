@@ -16,7 +16,7 @@ EXPORT_SYMBOL(start_elevator);
 EXPORT_SYMBOL(stop_elevator);
 EXPORT_SYMBOL(issue_request);
 
-asmlinkage int sys_start_elevator() 
+asmlinkage long sys_start_elevator(void) 
 {
 	if (start_elevator != NULL) {
 		return start_elevator();
@@ -25,7 +25,7 @@ asmlinkage int sys_start_elevator()
 	}
 }
 
-asmlinkage int sys_stop_elevator()
+asmlinkage long sys_stop_elevator(void)
 {
 	if (stop_elevator != NULL) {
 		return stop_elevator();
@@ -34,7 +34,7 @@ asmlinkage int sys_stop_elevator()
 	}
 }
  
-asmlinkage int sys_issue_request(int pass_type, int start_floor, int dest_floor) 
+asmlinkage long sys_issue_request(int pass_type, int start_floor, int dest_floor) 
 {
 	if (issue_request != NULL) {
 		return issue_request(pass_type, start_floor, dest_floor);
