@@ -105,16 +105,7 @@ static int my_elev_init(void)
   start_elevator = my_elev_start_elevator;
   issue_request = my_elev_issue_request;
   stop_elevator = my_elev_stop_elevator;
-  my_elev_start_elevator();
 
-
-  thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
-  printk(KERN_WARNING "global elev: %px\n", &elev);
-  if (IS_ERR(thread_elev_sched)) {
-    printk(KERN_WARNING "error spwaning thread\n");
-    remove_proc_entry(ENTRY_NAME, NULL);
-    return PTR_ERR(thread_elev_sched);
-  }
   return 0;
 }
 module_init(my_elev_init);

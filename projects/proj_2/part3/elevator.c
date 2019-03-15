@@ -10,7 +10,7 @@
 #include <linux/kthread.h>
 #include "elevator.h"
 
-
+extern task_struct *thread_elev_sched;
 
 /*
   Initializes extern struct my_elevator elev to default values.
@@ -45,6 +45,14 @@ long my_elev_start_elevator(void)
   long ret = 0;
   if (elev.init == 0) {
     init_my_elevator(&elev);
+    thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
+    printk(KERN_WARNING "global elev: %px\n", &elev);
+
+    if (IS_ERR(thread_elev_sched)) {
+      printk(KERN_WARNING "error spwaning thread\n");
+      remove_proc_entry(ENTRY_NAME, NULL);
+      return PTR_ERR(thread_elev_sched);
+    }
   } else {
     ret = 1;
   }
@@ -84,6 +92,7 @@ long my_elev_issue_request(int passenger_type, int start_floor, int destination_
 */
 long my_elev_stop_elevator(void)
 {
+  long ret = 0;
 
 }
 

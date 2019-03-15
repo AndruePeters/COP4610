@@ -35,7 +35,7 @@ void cleanup_floors(struct floor *f)
 int add_passenger(struct floor *f, int passenger_type, int start_floor, int destination_floor)
 {
   struct my_elev_passenger *ep = NULL;
-  if (passenger_type >= NUM_PASS_TYPES ||
+  if (passenger_type >= NUM_PASS_TYPES || passenger_type <= MY_ELEV_NONE ||
       destination_floor < 1 || destination_floor > MAX_FLOOR ||
       start_floor < 1 || start_floor > MAX_FLOOR) {
         return 1;

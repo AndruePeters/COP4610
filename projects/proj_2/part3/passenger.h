@@ -10,7 +10,7 @@
 #include "my_elev_config.h"
 
 enum my_elev_pass_type {
-  MY_ELEV_NONE,
+  MY_ELEV_NONE =0,
   MY_ELEV_ADULT,
   MY_ELEV_CHILD,
   MY_ELEV_ROOMSERVICE,
