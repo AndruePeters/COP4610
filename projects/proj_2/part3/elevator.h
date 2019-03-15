@@ -63,20 +63,20 @@ int init_my_elevator(struct my_elevator *elev);
       current floor: 1
       current load 0 units, 0 weight
 */
-int start_elevator(void);
+int my_elev_start_elevator(void);
 
 /*
   Creates a passenger of type passenger_type at start_floor that wishes to go
   to destination_floor. This function returns 1 if the request is not valid
   (one of the variables is out of range), and 0 otherwise.
 */
-int issue_request(int passenger_type, int start_floor, int destination_fllor);
+int my_elev_issue_request(int passenger_type, int start_floor, int destination_fllor);
 
 /*
   Deactivates elevator. At this point, the elevator will process no more requests.
   However, it has to offload all of its current passengers.
 */
-int stop_elevator(void);
+int my_elev_stop_elevator(void);
 
 /*
   Private Methods
