@@ -7,8 +7,8 @@
 #define _GROUP_15_MY_ELEV_FLOOR_H_
 
 #include <linux/list.h>
-#include <passenger.h>
-#include <my_elev_config.h>
+#include "passenger.h"
+#include "my_elev_config.h"
 
 /*
   Stores passengers.

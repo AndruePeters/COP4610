@@ -8,7 +8,7 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/kthread.h>
-#include <elevator.h>
+#include "elevator.h"
 
 
 
@@ -196,7 +196,6 @@ void my_elev_unload(struct my_elevator *elev)
         elev->total_load -= my_elev_get_pass_load(ep->pass_type);
         list_del(pos);
         kfree(ep);
-        my_elev_sleep(TIM_BTW_PASSENGER);
       }
     }
     elev->state = prev_state;
@@ -232,7 +231,6 @@ void my_elev_load(struct my_elevator *elev)
             elev->num_passengers += pass_units;
             elev->total_load += pass_load;
             elev->floors[elev->curr_floor-1].num_pass_serviced += my_elev_get_pass_units(pass_units);
-            my_elev_sleep(TIM_BTW_PASSENGER);
       }
     }
     elev->state = prev_state;
@@ -240,6 +238,16 @@ void my_elev_load(struct my_elevator *elev)
   mutex_unlock(&(elev->mtx));
 }
 
+
+/*
+  Loads and unloads the elevator at curr_floor.
+*/
+void my_elev_unload_load(struct my_elevator *elev)
+{
+  my_elev_unload(elev);
+  my_elev_load(elev);
+  my_elev_sleep(TIM_BTW_PASSENGER);
+}
 /*
   Returns string with information for elevator.
   To be written to proc. Make sure it is freed after use.

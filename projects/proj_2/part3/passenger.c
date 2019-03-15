@@ -1,6 +1,6 @@
 #include <linux/slab.h>
 #include <linux/kernel.h>
-#include <passenger.h>
+#include "passenger.h"
 
 
 int my_elev_get_pass_load(int pass_type)

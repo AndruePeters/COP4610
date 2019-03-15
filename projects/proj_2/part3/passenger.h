@@ -7,7 +7,7 @@
 #define _GROUP_15_MY_ELEV_PASSENGER_H_
 
 #include <floor.h>
-#include <my_elev_config.h>
+#include "my_elev_config.h"
 
 enum my_elev_pass_type {
   MY_ELEV_NONE,

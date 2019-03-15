@@ -18,10 +18,7 @@
 #include <linux/kthread.h>
 
 
-
-#include <passenger.h>
-#include <floor.h>
-#include <elevator.h>
+#include "elevator.h"
 
 
 

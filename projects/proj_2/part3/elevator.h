@@ -8,9 +8,9 @@
 #include <linux/list.h>
 #include <linux/mutex.h>
 
-#include <passenger.h>
-#include <floor.h>
-#include <my_elev_config.h>
+#include "passenger.h"
+#include "floor.h"
+#include "my_elev_config.h"
 
 
 
@@ -119,6 +119,11 @@ void my_elev_unload(struct my_elevator *elev);
   Loads all available people at current floor.
 */
 void my_elev_load(struct my_elevator *elev);
+
+/*
+  Loads and unloads the elevator at curr_floor.
+*/
+void my_elev_unload_load(struct my_elevator *elev);
 
 /*
   Returns string with information for elevator.
