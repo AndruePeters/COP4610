@@ -317,6 +317,7 @@ const char* my_elev_state_char(struct my_elevator *elev)
     }
   }
   mutex_unlock(&(elev->mtx));
+  printk(KERN_WARNING "EXIT my_elev_state_char\n");
   return state;
 }
 
