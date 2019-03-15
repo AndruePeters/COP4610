@@ -40,6 +40,8 @@ struct my_elevator elev;
 struct task_struct *thread_elev_sched;
 
 extern long (*start_elevator)(void);
+extern long (*issue_request)(int pass_type, int start_floor, int dest_floor);
+extern long (*stop_elevator)(void);
 /*
   Runs when file has been opened.
 */
@@ -101,6 +103,8 @@ static int my_elev_init(void)
 
   /* General initialization for other components */
   start_elevator = my_elev_start_elevator;
+  issue_request = my_elev_issue_request;
+  stop_elevator = my_elev_stop_elevator;
   my_elev_start_elevator();
 
   init_my_elevator(&elev);
