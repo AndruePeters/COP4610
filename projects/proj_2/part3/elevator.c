@@ -9,10 +9,11 @@
 #include <linux/types.h>
 #include <linux/kthread.h>
 #include <linux/proc_fs.h>
+#include <linux/syscalls.h>
 #include "elevator.h"
 
-extern struct task_struct *thread_elev_sched;
-extern struct my_elevator elev;
+struct task_struct *thread_elev_sched;
+struct my_elevator elev;
 bool has_been_init = false;
 
 
@@ -76,6 +77,7 @@ long my_elev_issue_request(int passenger_type, int start_floor, int destination_
   int ret = 1;
   if (mutex_lock_interruptible(&(elev.mtx)) == 0) {
     printk(KERN_INFO "calling add_passenger()\n");
+    printk(KERN_WARNING "Passenger_type: %d\nStart Floor: %d\nDest Floor: %d\n", passenger_type, start_floor, destination_floor);
     ret =  add_passenger(elev.floors, passenger_type, start_floor, destination_floor);
 
     // start elevator only if it's idle
@@ -110,10 +112,7 @@ long my_elev_stop_elevator(void)
 int my_elev_scheduler(void *e)
 {
   struct my_elevator *elev = e;
-  static int curr_floor, floor;
-  enum my_elev_state curr_state;
-  void (*elev_move_func)(struct my_elevator *elev);
-  curr_floor = 1;
+  int curr_floor = 1;
 
   printk(KERN_WARNING "Threaded elev: %px\n", elev);
   while(!kthread_should_stop()) {
@@ -122,9 +121,7 @@ int my_elev_scheduler(void *e)
       continue;
     }
 
-    //printk(KERN_WARNING "IN THREAD\n");
-    my_elev_unload(elev);
-    my_elev_load(elev);
+    my_elev_unload_load(elev);
 
     if (my_elev_get_state(elev) == MY_ELEV_UP) {
       my_elev_up_floor(elev);

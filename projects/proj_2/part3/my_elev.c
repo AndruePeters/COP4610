@@ -29,14 +29,13 @@ static struct file_operations fops;
 static char *message;
 static int read_p;
 
-struct my_elevator elev;
-struct task_struct *thread_elev_sched;
+
 
 extern long (*start_elevator)(void);
 extern long (*issue_request)(int pass_type, int start_floor, int dest_floor);
 extern long (*stop_elevator)(void);
 
-extern bool has_been_init;
+
 /*
   Runs when file has been opened.
 */
@@ -107,16 +106,6 @@ static int my_elev_init(void)
   start_elevator = my_elev_start_elevator;
   issue_request = my_elev_issue_request;
   stop_elevator = my_elev_stop_elevator;
-  init_my_elevator(&elev);
-
-  thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
-
-  if (IS_ERR(thread_elev_sched)) {
-    printk(KERN_WARNING "error spwaning thread\n");
-    remove_proc_entry(ENTRY_NAME, NULL);
-    return PTR_ERR(thread_elev_sched);
-  }
-  has_been_init = true;
   return 0;
 }
 module_init(my_elev_init);
@@ -128,7 +117,7 @@ static void my_elev_exit(void)
 {
 
   remove_proc_entry(ENTRY_NAME, NULL);
-
+  my_elev_stop_elevator();
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
 }
 module_exit(my_elev_exit);

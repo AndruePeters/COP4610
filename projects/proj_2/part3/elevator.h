@@ -43,7 +43,7 @@ struct my_elevator {
 
 
 extern struct my_elevator elev;
-
+extern bool has_been_init;
 /*
   Public Methods
 */

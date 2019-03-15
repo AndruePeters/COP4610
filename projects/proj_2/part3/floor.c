@@ -35,6 +35,7 @@ void cleanup_floors(struct floor *f)
 int add_passenger(struct floor *f, int passenger_type, int start_floor, int destination_floor)
 {
   struct my_elev_passenger *ep = NULL;
+  printk(KERN_WARNING "Passenger_type: %d\nStart Floor: %d\nDest Floor: %d\n", passenger_type, start_floor, destination_floor);
   if (passenger_type >= NUM_PASS_TYPES || passenger_type <= MY_ELEV_NONE ||
       destination_floor < 1 || destination_floor > MAX_FLOOR ||
       start_floor < 1 || start_floor > MAX_FLOOR) {
@@ -44,6 +45,7 @@ int add_passenger(struct floor *f, int passenger_type, int start_floor, int dest
   printk(KERN_INFO "Adding passenger to floor: %d\n", start_floor);
   ep = my_elev_new_passenger(passenger_type, destination_floor);
   list_add_tail(&ep->list, &f[start_floor-1].pass_list);
+  printk(KERN_INFO "PERSON should have been added.\n");
   return 0;
 }
 
