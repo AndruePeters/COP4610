@@ -12,6 +12,7 @@
 #include "elevator.h"
 
 extern struct task_struct *thread_elev_sched;
+extern struct my_elevator elev;
 bool has_been_init = false;
 
 
