@@ -262,8 +262,9 @@ char* my_elev_dump_info(struct my_elevator *elev)
 
   printk(KERN_INFO "in my_elev_dump_info()\n");
   msg = kmalloc(sizeof(char) * 550, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
-
+  printk(KERN_WARNING "Got msg allocation\n");
   if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
+    printk(KERN_WARNING "Got lock\n");
     if (!msg) {
       printk(KERN_WARNING "Unable to allocate in my_elev_dump_info\n");
       msg = NULL;
