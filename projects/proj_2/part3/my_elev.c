@@ -35,18 +35,22 @@ struct task_struct *thread_elev_sched;
 extern long (*start_elevator)(void);
 extern long (*issue_request)(int pass_type, int start_floor, int dest_floor);
 extern long (*stop_elevator)(void);
+
+extern bool has_been_init;
 /*
   Runs when file has been opened.
 */
 int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
 {
-  printk(KERN_INFO "my_elev proc opened\n");
-  read_p = 1;
+  if (has_been_init == true) {
+    printk(KERN_INFO "my_elev proc opened\n");
+    read_p = 1;
 
-  message = my_elev_dump_info(&elev);
-  if (!message) {
-    printk(KERN_WARNING "my_elev_open\n");
-    return -ENOMEM;
+    message = my_elev_dump_info(&elev);
+    if (!message) {
+      printk(KERN_WARNING "my_elev_open\n");
+      return -ENOMEM;
+    }
   }
   return 0;
 }
@@ -56,12 +60,15 @@ int my_elev_proc_open (struct inode *sp_inode, struct file *sp_file)
 */
 ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, loff_t *offset)
 {
-  int len = strlen(message);
-  read_p = !read_p;
-  if (read_p) return 0;
+  if (has_been_init == true) {
+    int len = strlen(message);
+    read_p = !read_p;
+    if (read_p) return 0;
 
-  copy_to_user(buf, message, len);
-  return len;
+    copy_to_user(buf, message, len);
+    return len;
+  }
+  return 0;
 }
 
 /*
@@ -70,8 +77,10 @@ ssize_t my_elev_proc_read(struct file *sp_file, char __user *buf, size_t size, l
 */
 int my_elev_proc_release(struct inode *sp_inode, struct file *sp_file)
 {
-  printk(KERN_INFO "my_elev proc called release\n");
-  kfree(message);
+  if (has_been_init == true) {
+    printk(KERN_INFO "my_elev proc called release\n");
+    kfree(message);
+  }
   return 0;
 }
 
