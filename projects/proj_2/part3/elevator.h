@@ -51,7 +51,7 @@ extern struct my_elevator elev;
 /*
   Initializes all values within an my_elevator struct.
 */
-int init_my_elevator(void);
+int init_my_elevator(struct my_elevator *elev);
 
 /*
   Activates elevator service. From that point onward, the elevator exists
@@ -84,6 +84,11 @@ int stop_elevator(void);
 */
 
 /*
+  Main thread that runs in order to actually schedule the elevator.
+*/
+void my_elev_scheduler(struct my_elevator *e);
+
+/*
   Sleeps for the specified amount of time.
 */
 void my_elev_sleep(int time);
@@ -97,33 +102,64 @@ void my_elev_move_to_floor(int floor);
   Goes up a single floor.
   Does nothing if floor == MAX_FLOOR
 */
-void my_elev_up_floor(void);
+void my_elev_up_floor(struct my_elevator *elev);
 
 /*
   Goes down a single floor.
   Does nothing if floor == 1
 */
-void my_elev_down_floor(void);
+void my_elev_down_floor(struct my_elevator *elev);
 
 /*
   Unloads all available people at current floor.
 */
-void my_elev_unload(void);
+void my_elev_unload(struct my_elevator *elev);
 
 /*
   Loads all available people at current floor.
 */
-void my_elev_load(void);
+void my_elev_load(struct my_elevator *elev);
 
 /*
   Returns string with information for elevator.
   To be written to proc. Make sure it is freed after use.
 */
-char* my_elev_dump_info(void);
+char* my_elev_dump_info(struct my_elevator *elev);
 
 /*
   Returns the state of the elevator.
   Returns a const pointer, so don't try freeing it.
 */
-const char* my_elev_state(void);
+const char* my_elev_state_char(struct my_elevator *elev);
+
+/*
+  Returns the current floor of the elevator.
+*/
+int my_elev_curr_floor(struct my_elevator *elev);
+
+/*
+  Returns 1 if user at this floor.
+  Returns 0 if no passenger to get off.
+  This function can definitely be initialized in the future,
+  but iterating through a list isn't too bad with 10 passengers.
+*/
+bool my_elev_stop_at_floor(struct my_elevator *elev);
+
+/*
+  Returns the next floor the elevator should move to.
+  Optimize in future for thoroughput.
+*/
+int my_elev_floor_to_move_to(struct my_elevator *elev);
+
+/*
+  Sets state of elevator.
+  Don't use inside function with a lock.
+*/
+void my_elev_set_state(struct my_elevator *elev, enum my_elev_state s);
+
+/*
+  Gets current state. Don't use inside a function with a lock.
+*/
+enum my_elev_state my_elev_get_state(struct my_elevator *elev);
+
 #endif

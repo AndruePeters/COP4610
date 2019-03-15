@@ -14,17 +14,17 @@
 /*
   Initializes extern struct my_elevator elev to default values.
 */
-int init_my_elevator(void)
+int init_my_elevator(struct my_elevator *elev)
 {
-  elev.num_passengers = 0;
-  elev.total_load = 0;
-  elev.curr_floor = 1;
-  elev.total_passengers = 0;
-  elev.state = MY_ELEV_IDLE;
-  init_floors(elev.floors);
-  INIT_LIST_HEAD(&elev.pass_list);
-  mutex_init(&elev.mtx);
-  mutex_unlock(&elev.mtx);
+  elev->num_passengers = 0;
+  elev->total_load = 0;
+  elev->curr_floor = 1;
+  elev->total_passengers = 0;
+  elev->state = MY_ELEV_IDLE;
+  init_floors(elev->floors);
+  INIT_LIST_HEAD(&elev->pass_list);
+  mutex_init(&(elev->mtx));
+  mutex_unlock(&(elev->mtx));
   return 0;
 }
 
@@ -51,13 +51,22 @@ int start_elevator(void)
 int issue_request(int passenger_type, int start_floor, int destination_floor)
 {
   int ret;
-  if (mutex_lock_interruptible(&elev.mtx) == 0) {
+  if (mutex_lock_interruptible(&(elev.mtx)) == 0) {
     printk(KERN_INFO "calling add_passenger()\n");
     ret =  add_passenger(elev.floors, passenger_type, start_floor, destination_floor);
+
+    // start elevator only if it's idle
+    if (elev.state == MY_ELEV_IDLE) {
+      if (elev.curr_floor > start_floor) {
+        elev.state = MY_ELEV_DOWN;
+      } else if (elev.curr_floor < start_floor) {
+        elev.state = MY_ELEV_UP;
+      }
+    }
   } else {
     printk(KERN_WARNING "Can't aquare lock in issue_request\n");
   }
-  mutex_unlock(&elev.mtx);
+  mutex_unlock(&(elev.mtx));
   return ret;
 }
 
@@ -67,6 +76,43 @@ int issue_request(int passenger_type, int start_floor, int destination_floor)
 */
 int stop_elevator(void)
 {
+
+}
+
+/*
+  Main thread that runs in order to actually schedule the elevator.
+*/
+void my_elev_scheduler(struct my_elevator *e)
+{
+  static struct my_elevator *elev = NULL;
+  static int curr_floor, floor;
+  enum my_elev_state curr_state;
+  void (*elev_move_func)(struct my_elevator *elev);
+  elev = e;
+  curr_floor = my_elev_curr_floor(elev);
+
+
+  while(1) {
+    if (my_elev_get_state(elev) == MY_ELEV_IDLE) {
+      continue;
+    }
+    int curr_floor = my_elev_curr_floor(elev);
+    my_elev_unload(elev);
+    my_elev_load(elev);
+
+    if (my_elev_get_state(elev) == MY_ELEV_UP) {
+      my_elev_up_floor(elev);
+    } else if (my_elev_get_state(elev) == MY_ELEV_DOWN) {
+      my_elev_down_floor(elev);
+    }
+
+    if (curr_floor == 1) {
+      my_elev_set_state(elev, MY_ELEV_UP);
+    } else if (curr_floor == 10) {
+      my_elev_set_state(elev, MY_ELEV_DOWN);
+    }
+
+  }
 
 }
 
@@ -94,34 +140,34 @@ void my_elev_move_to_floor(int floor)
   Moves elevator up a single floor.
   Does nothing if elevator already at MAX_FLOOR
 */
-void my_elev_up_floor(void)
+void my_elev_up_floor(struct my_elevator *elev)
 {
-  if (mutex_lock_interruptible(&elev.mtx) == 0) {
-    if (elev.curr_floor == MAX_FLOOR) {
+  if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
+    if (elev->curr_floor == MAX_FLOOR) {
       return;
     }
 
     my_elev_sleep(TIME_BTW_FLOORS);
-    ++elev.curr_floor;
+    ++elev->curr_floor;
   }
-  mutex_unlock(&elev.mtx);
+  mutex_unlock(&(elev->mtx));
 }
 
 /*
   Moves elevator down a single floor.
   Does nothing if elevator is already at MIN_FLOOR
 */
-void my_elev_down_floor(void)
+void my_elev_down_floor(struct my_elevator *elev)
 {
-  if (mutex_lock_interruptible(&elev.mtx) == 0) {
-    if (elev.curr_floor == MIN_FLOOR) {
+  if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
+    if (elev->curr_floor == MIN_FLOOR) {
       return;
     }
 
     my_elev_sleep(TIME_BTW_FLOORS);
-    --elev.curr_floor;
+    --elev->curr_floor;
   }
-  mutex_unlock(&elev.mtx);
+  mutex_unlock(&(elev->mtx));
 }
 
 /*
@@ -131,23 +177,28 @@ void my_elev_down_floor(void)
 
   Unloads based upon elev.curr_floor;
 */
-void my_elev_unload(void)
+void my_elev_unload(struct my_elevator *elev)
 {
   struct list_head *pos, *pos_next;
   struct my_elev_passenger *ep  = NULL;
+  enum my_elev_state prev_state = MY_ELEV_OFFLINE;
 
-  if (mutex_lock_interruptible(&elev.mtx) == 0) {
-    list_for_each_safe(pos, pos_next, &elev.pass_list) {
+  if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
+    prev_state = elev->state;
+    elev->state = MY_ELEV_LOADING;
+    list_for_each_safe(pos, pos_next, &elev->pass_list) {
       ep = list_entry(pos, struct my_elev_passenger, list);
-      if (ep->dest_floor == elev.curr_floor) {
-        elev.num_passengers -= my_elev_get_pass_units(ep->pass_type);
-        elev.total_load -= my_elev_get_pass_load(ep->pass_type);
+      if (ep->dest_floor == elev->curr_floor) {
+        elev->num_passengers -= my_elev_get_pass_units(ep->pass_type);
+        elev->total_load -= my_elev_get_pass_load(ep->pass_type);
         list_del(pos);
         kfree(ep);
+        ssleep(TIM_BTW_PASSENGER);
       }
     }
+    elev->state = prev_state;
   }
-  mutex_unlock(&elev.mtx);
+  mutex_unlock(&(elev->mtx));
 }
 
 /*
@@ -156,28 +207,34 @@ void my_elev_unload(void)
 
   Loads based upon elev.curr_floor
 */
-void my_elev_load(void)
+void my_elev_load(struct my_elevator *elev)
 {
   struct list_head *pos, *pos_next;
   struct my_elev_passenger *ep = NULL;
+  enum my_elev_state prev_state = MY_ELEV_OFFLINE;
   int pass_units, pass_load;
 
-  if (mutex_lock_interruptible(&elev.mtx) == 0) {
-    list_for_each_safe(pos, pos_next, &(elev.floors[elev.curr_floor - 1].pass_list)) {
+  if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
+    prev_state = elev->state;
+    elev->state = MY_ELEV_LOADING;
+
+    list_for_each_safe(pos, pos_next, &(elev->floors[elev->curr_floor - 1].pass_list)) {
       ep = list_entry(pos, struct my_elev_passenger, list);
       pass_units = my_elev_get_pass_units(ep->pass_type);
       pass_load = my_elev_get_pass_load(ep->pass_type);
 
-      if ((pass_units + elev.num_passengers <= MAX_PASSENGERS) &&
-          (pass_load + elev.total_load <= MAX_LOAD))             {
-            list_move_tail(pos, &elev.pass_list);
-            elev.num_passengers += pass_units;
-            elev.total_load += pass_load;
-            elev.floors[elev.curr_floor-1].num_pass_serviced += my_elev_get_pass_units(pass_units);
+      if ((pass_units + elev->num_passengers <= MAX_PASSENGERS) &&
+          (pass_load + elev->total_load <= MAX_LOAD))             {
+            list_move_tail(pos, &elev->pass_list);
+            elev->num_passengers += pass_units;
+            elev->total_load += pass_load;
+            elev->floors[elev->curr_floor-1].num_pass_serviced += my_elev_get_pass_units(pass_units);
+            ssleep(TIM_BTW_PASSENGER);
       }
     }
+    elev->state = prev_state;
   }
-  mutex_unlock(&elev.mtx);
+  mutex_unlock(&(elev->mtx));
 }
 
 /*
@@ -187,7 +244,7 @@ void my_elev_load(void)
   Adding every entry comes out to under 550 characters.
   Exactly 534, but using a few extra bytes as a buffer.
 */
-char* my_elev_dump_info(void)
+char* my_elev_dump_info(struct my_elevator *elev)
 {
   printk(KERN_INFO "in my_elev_dump_info()\n");
   char *msg, *floor_buff;
@@ -195,7 +252,7 @@ char* my_elev_dump_info(void)
 
   msg = kmalloc(sizeof(char) * 550, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
 
-  if (mutex_lock_interruptible(&elev.mtx) == 0) {
+  if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
     if (!msg) {
       printk(KERN_WARNING "Unable to allocate in my_elev_dump_info\n");
       msg = NULL;
@@ -204,11 +261,11 @@ char* my_elev_dump_info(void)
       sprintf(msg, "Elevator State: %s\n"
                     "Current Floor: %d\n"
                     "Next Floor: %d\n"
-                    "Curr Load: %d\n", my_elev_state(), elev.curr_floor, 0, elev.total_load);
+                    "Curr Load: %d\n", my_elev_state_char(elev), elev->curr_floor, 0, elev->total_load);
       printk(KERN_INFO "msg before floor: %s", msg);
       // get the number of waiting passengers for each floor and create string and then append
       for (i=0; i < MAX_FLOOR; ++i) {
-        num_floor_pass[i] = get_load_pass_floor(&elev.floors[i]);
+        num_floor_pass[i] = get_load_pass_floor(&(elev->floors[i]));
         floor_buff = kmalloc(sizeof(char) * 50, __GFP_RECLAIM | __GFP_IO | __GFP_FS);
 
         if (!floor_buff) {
@@ -218,14 +275,14 @@ char* my_elev_dump_info(void)
           break;
         } else {
           sprintf(floor_buff, "Floor %d\n\tLoad: %d\n\t#Pass Serviced: %d\n",
-                  i+1, get_load_pass_floor(&elev.floors[i]), elev.floors[i].num_pass_serviced);
+                  i+1, get_load_pass_floor(&(elev->floors[i])), elev->floors[i].num_pass_serviced);
           strcat(msg, floor_buff);
           kfree(floor_buff);
         }
       }
     }
   }
-  mutex_unlock(&elev.mtx);
+  mutex_unlock(&(elev->mtx));
   return msg;
 }
 
@@ -233,11 +290,11 @@ char* my_elev_dump_info(void)
   Returns the state of the elevator.
   Returns a const pointer, so don't try freeing it.
 */
-const char* my_elev_state(void)
+const char* my_elev_state_char(struct my_elevator *elev)
 {
   char *state;
-  if (mutex_lock_interruptible(&elev.mtx) == 0) {
-    switch(elev.state) {
+  if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
+    switch(elev->state) {
       case MY_ELEV_OFFLINE: state = "OFFLINE"; break;
       case MY_ELEV_IDLE: state = "IDLE"; break;
       case MY_ELEV_LOADING: state = "LOADING"; break;
@@ -246,6 +303,92 @@ const char* my_elev_state(void)
       default: state = NULL; break;
     }
   }
-  mutex_unlock(&elev.mtx);
+  mutex_unlock(&(elev->mtx));
   return state;
+}
+
+/*
+  Returns the current floor of the elevator.
+*/
+int my_elev_curr_floor(struct my_elevator *elev)
+{
+  int cf = 1;
+  if (mutex_lock_interruptible(&(elev->mtx)) == 0) {
+    cf = elev->curr_floor;
+  }
+  mutex_unlock(&(elev->mtx));
+}
+
+/*
+  Returns 1 if user at this floor.
+  Returns 0 if no passenger to get off.
+  This function can definitely be initialized in the future,
+  but iterating through a list isn't too bad with 10 passengers.
+*/
+bool my_elev_stop_at_floor(struct my_elevator *elev)
+{
+  struct list_head *pos;
+  struct my_elev_passenger *ep = NULL;
+  bool ret = false;
+  if (mutex_lock_interruptible(&elev->mtx)) {
+    list_for_each(pos, &(elev->floors[elev->curr_floor-1].pass_list)) {
+      ep = list_entry(pos, struct my_elev_passenger, list);
+      if (ep->dest_floor == elev->curr_floor) {
+        ret = true;
+        break;
+      }
+    }
+  }
+  mutex_unlock(&elev->mtx);
+  return ret;
+}
+
+/*
+  Returns the next floor the elevator should move to.
+  Optimize in future for thoroughput.
+*/
+int my_elev_floor_to_move_to(struct my_elevator *elev)
+{
+  int floor = 0;
+  if (mutex_lock_interruptible(&elev->mtx)) {
+    if (elev->curr_floor == 1) {
+      floor = 2;
+    } else if (elev->curr_floor == 10) {
+      floor = 9;
+    } else if (elev->state == MY_ELEV_UP) {
+      floor = elev->curr_floor + 1;
+    } else if (elev->state == MY_ELEV_DOWN) {
+      floor = elev->curr_floor - 1;
+    }
+  }
+  mutex_unlock(&elev->mtx);
+}
+
+/*
+  Sets state of elevator.
+  Don't use inside function with a lock.
+*/
+void my_elev_set_state(struct my_elevator *elev, enum my_elev_state s)
+{
+  if (s < MY_ELEV_OFFLINE || s > MY_ELEV_DOWN) {
+    return;
+  }
+
+  if (mutex_lock_interruptible(&elev->mtx)) {
+    elev->state = s;
+  }
+  mutex_unlock(&elev->mtx);
+}
+
+/*
+  Gets current state. Don't use inside a function with a lock.
+*/
+enum my_elev_state my_elev_get_state(struct my_elevator *elev)
+{
+  enum my_elev_state s;
+  if (mutex_lock_interruptible(&elev->mtx)) {
+    s = elev->state;
+  }
+  mutex_unlock(&elev->mtx);
+  return s;
 }
