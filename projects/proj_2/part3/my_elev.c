@@ -115,9 +115,9 @@ module_init(my_elev_init);
 */
 static void my_elev_exit(void)
 {
-  kthread_stop(thread_elev_sched);
+
   remove_proc_entry(ENTRY_NAME, NULL);
-  mutex_destroy(&elev.mtx);
+
   printk(KERN_NOTICE "Removing /proc/%s.\n", ENTRY_NAME);
 }
 module_exit(my_elev_exit);

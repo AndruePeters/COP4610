@@ -10,7 +10,7 @@
 #include <linux/kthread.h>
 #include "elevator.h"
 
-extern task_struct *thread_elev_sched;
+extern struct task_struct *thread_elev_sched;
 
 /*
   Initializes extern struct my_elevator elev to default values.
@@ -93,7 +93,8 @@ long my_elev_issue_request(int passenger_type, int start_floor, int destination_
 long my_elev_stop_elevator(void)
 {
   long ret = 0;
-
+  kthread_stop(thread_elev_sched);
+  mutex_destroy(&elev.mtx);
 }
 
 /*
