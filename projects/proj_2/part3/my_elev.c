@@ -108,6 +108,14 @@ static int my_elev_init(void)
   issue_request = my_elev_issue_request;
   stop_elevator = my_elev_stop_elevator;
   init_my_elevator(&elev);
+
+  thread_elev_sched = kthread_run(my_elev_scheduler, (void *)&elev, "elevator scheduler");
+
+  if (IS_ERR(thread_elev_sched)) {
+    printk(KERN_WARNING "error spwaning thread\n");
+    remove_proc_entry(ENTRY_NAME, NULL);
+    return PTR_ERR(thread_elev_sched);
+  }
   has_been_init = true;
   return 0;
 }
