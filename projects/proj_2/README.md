@@ -38,8 +38,7 @@ Part 3:
 10.	floor.h (./proj_2/part3/): Declares the struct for each floor and the functions to add a passenger and offload a passenger.
 11.	floor.c (./proj_2/part3/): Defines and initializes floor struct and functions
 12.	my_elev.c (./proj_2/part3/): This module provides the proc entry and prints the current elevator information (state, floor, 
-    next floor, load). This also prints the data for each floor (waiting passenger loads and the number of passengers that have been 
-    serviced).
+    next floor, load). This also prints the data for each floor (waiting passenger loads and the number of passengers that have    been serviced).
 13.	my_elev_config.h (./proj_2/part3/): Initializes and stores the configuration of the elevator module.
 14.	passenger.h (./proj_2/part3/): Declares the enumerator, struct, and functions used for the different types of elevator passengers.
 15.	passenger.c (./proj_2/part3/): Defines the different types of passenger, their weight/unit values, and useful accessor functions.
@@ -52,11 +51,12 @@ Part 3:
 
 docs:
 This folder contains useful documents regarding the project, such as examples, lectures, and project description. The provided tests 
-are also stored here in the Testing folder and are as follows:
+are also stored here in the Testing folder and are as follows and contents extracted in the corresponding test1, test2, test3, and test4 folders:
 ./proj_2/docs/Testing/elevator1_issue_one
 ./proj_2/docs/Testing/elevator2_issue_one_invalid
 ./proj_2/docs/Testing/elevator3_issue_several
 ./proj_2/docs/Testing/elevator4_stress_test
+To run a test, go to the desired test folder and use make. Run the executables.
 
 Computer_info.txt (./proj_2/computer_info.txt): This file holds the login password for the lab computer.
 
