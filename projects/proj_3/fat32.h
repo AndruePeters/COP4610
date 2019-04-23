@@ -1,3 +1,7 @@
+/*
+  Function prototypes and structs for fat32
+*/
+
 #ifndef _GROUP_15_FAT32_H_
 #define _GROUP_15_FAT32_H_
 
