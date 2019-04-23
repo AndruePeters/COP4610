@@ -12,6 +12,8 @@ all: clean filesys
 
 filesys: $(obj)
 	$(CC)  $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	@echo -e "\n\nUnpacking and copying image to $(PWD)"
+	@tar -xf docs/Project3/fat32.tar.gz
 
 clean:
-	- rm -f $(obj) filesys
+	- rm -f $(obj) filesys fat32.img
