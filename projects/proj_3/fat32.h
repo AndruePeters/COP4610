@@ -1,4 +1,8 @@
+#ifndef _GROUP_15_FAT32_H_
+#define _GROUP_15_FAT32_H_
+
 #include <stdint.h>
+#include "fat32_masks.h"
 
 struct fat_dir {
   uint8_t DIR_Name[11];
@@ -34,27 +38,39 @@ struct fat_bpb {
   uint16_t BPB_FATSz16; // must be 0 on fat32 systems
   uint16_t BPB_SecPerTrk;
   uint16_t BPB_NumHeads;
-  uint64_t BPB_HiddSec;
-  uint64_t BPB_TotSec32;
+  uint32_t BPB_HiddSec;
+  uint32_t BPB_TotSec32;
 
   // this is where FAT32 is different
   // the following are from page 12 of the documentation
-  uint64_t BPB_FATSz32;
+  uint32_t BPB_FATSz32;
   uint16_t BPB_ExtFlags;
   uint16_t BPB_FSVer;
-  uint64_t BPB_RootClus;
+  uint32_t BPB_RootClus;
   uint16_t BPB_FSInfo;
   uint16_t BPB_BkBootSec;
   uint8_t BPB_Reserved[12];
   uint8_t BS_DrvNum;
   uint8_t BS_Reserved1;
   uint8_t BS_BootSig;
-  uint64_t BS_VolID;
+  uint32_t BS_VolID;
   uint8_t BS_VolLab[11];
   uint8_t BS_FilSysType[8];
 } __attribute__((packed));
 
+struct fat_fsi {
+  uint32_t FSI_LeadSig;
+  uint8_t  FSI_Reserved1[480];
+  uint32_t FSI_StrucSig;
+  uint32_t FSI_Free_Count;
+  uint32_t FSI_Nxt_Free;
+  uint8_t  FSI_Reserved2[12];
+  uint32_t FSI_TrailSig;
+};
+
 struct shell_data {
   char *pwd;
   char *img_name;
-}
+};
+
+#endif
