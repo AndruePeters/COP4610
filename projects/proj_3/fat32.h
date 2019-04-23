@@ -20,7 +20,7 @@ struct fat_dir {
 /*
   The following is found on page 9 of the provided fatspec.pdf
 */
-struct fat_BPB {
+struct fat_bpb {
   uint8_t BS_jmpBoot[3];
   uint8_t BS_OEMName[8];
 
@@ -53,3 +53,8 @@ struct fat_BPB {
   uint8_t BS_VolLab[11];
   uint8_t BS_FilSysType[8];
 } __attribute__((packed));
+
+struct shell_data {
+  char *pwd;
+  char *img_name;
+}
