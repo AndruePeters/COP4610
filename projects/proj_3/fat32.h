@@ -80,7 +80,19 @@ struct shell_env {
 };
 
 
+/*
+ * Loads the bpb using fp.
+ * Assumptions:
+ *   fp is not null and is already opened.
+ *   fp no longer points at the beginning of the file
+*/
 void load_fat_bpb(struct fat_bpb* b, FILE *fp);
+
+/*
+ * Dumps the information in b
+ * Assumptions:
+ *  b is not null
+*/
 void dump_fat_bpb(struct fat_bpb*b);
 
 #endif
