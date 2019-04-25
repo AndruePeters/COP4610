@@ -36,9 +36,15 @@ int main()
     printf("0x%02x  ", b_ptr[i]);
     if (i % 5 == 0) printf("\n");
   }
-printf("Size of FAT32_BPB:\t%lu\nSize of FAT32_DIR:\t%lu\n", sizeof(struct fat_bpb), sizeof(struct fat_dir));
-printf("\n\n");
-dump_fat_bpb(&bpb);
+  printf("Size of FAT32_BPB:\t%lu\nSize of FAT32_DIR:\t%lu\n", sizeof(struct fat_bpb), sizeof(struct fat_dir));
+  printf("\n\n");
+  dump_fat_bpb(&bpb);
+
+
+
+  printf("First data sector: 0x%x\n", first_data_sector(&bpb));
+  printf("Root dir sector: 0x%x\n", root_dir_sector(&bpb));
+
 
   return 0;
 }
