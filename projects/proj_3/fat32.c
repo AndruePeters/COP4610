@@ -45,26 +45,10 @@ void dump_fat_dir(const struct fat_dir *d)
   printf("DIR_CrtTimeTenth: %u\n", d->DIR_CrtTimeTenth);
   printf("DIR_CrtTime: %u\n", d->DIR_CrtTime);
   printf("DIR_CrtDate: %u\n", d->DIR_CrtDate);
-}
-
-void printDIR(struct DIR* d)
-{
-    int i;
-    unsigned char tDirName[12];
-    for(i = 0; i < 11; i++)
-        tDirName[i] = d->DIR_Name[i];
-    tDirName[11] = '\0';
-    printf("Name: %s\n", tDirName);
-    printf("Attr: %#08x\n", d->DIR_Attr);
-    printf("NTRes: %uc\n", d->DIR_NTRes);
-    printf("CrtTimeTenth: %uc\n", d->DIR_CrtTimeTenth);
-    printf("CrtTime: %hu\n", d->DIR_CrtTime);
-    printf("CrtDate: %hu\n", d->DIR_CrtDate);
-    printf("LstAccDate: %hu\n", d->DIR_LstAccDate);
-    printf("FstClusHI: %hu\n", d->DIR_FstClusHI);
-    printf("WrtTime: %hu\n", d->DIR_WrtTime);
-    printf("WrtDate: %hu\n", d->DIR_WrtDate);
-    printf("FstClusLO: %hu\n", d->DIR_FstClusLO);
-    printf("FileSize: %u\n", d->DIR_FileSize);
-
+  printf("DIR_LstAccDate: %u\n", d->DIR_LstAccDate);
+  printf("DIR_FstClusHI: 0x%04x\n", d->DIR_FstClusHI);
+  printf("DIR_WrtTime: %u\n", d->DIR_WrtTime);
+  printf("DIR_WrtDate: %u\n", d->DIR_WrtDate);
+  printf("DIR_FstClusLO: %0x04x\n", d->DIR_FstClusLO);
+  printf("DIR_FileSize: %u\n", d->DIR_FileSize);
 }
