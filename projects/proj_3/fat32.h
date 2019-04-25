@@ -93,6 +93,13 @@ void load_fat_bpb(struct fat_bpb* b, FILE *fp);
  * Assumptions:
  *  b is not null
 */
-void dump_fat_bpb(struct fat_bpb*b);
+void dump_fat_bpb(const struct fat_bpb*b);
+
+/*
+ * Dumps the information in d
+ * Assumptions:
+ *  d is not null and valid dir object
+*/
+void dump_fat_dir(const struct fat_dir *d);
 
 #endif
