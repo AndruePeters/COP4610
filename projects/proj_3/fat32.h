@@ -6,6 +6,8 @@
 #define _GROUP_15_FAT32_H_
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "fat32_masks.h"
 
 struct fat_dir {
@@ -30,7 +32,7 @@ struct fat_dir {
 */
 struct fat_bpb {
   uint8_t BS_jmpBoot[3];
-  uint8_t BS_OEMName[8];
+  char BS_OEMName[8];
 
   uint16_t BPB_BytsPerSec;
   uint8_t BPB_SecPerClus;
@@ -58,7 +60,7 @@ struct fat_bpb {
   uint8_t BS_Reserved1;
   uint8_t BS_BootSig;
   uint32_t BS_VolID;
-  uint8_t BS_VolLab[11];
+  char BS_VolLab[11];
   uint8_t BS_FilSysType[8];
 } __attribute__((packed));
 
@@ -72,9 +74,13 @@ struct fat_fsi {
   uint32_t FSI_TrailSig;
 };
 
-struct shell_data {
+struct shell_env {
   char *pwd;
   char *img_name;
 };
+
+
+void load_fat_bpb(struct fat_bpb* b, FILE *fp);
+void dump_fat_bpb(struct fat_bpb*b);
 
 #endif
