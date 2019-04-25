@@ -52,3 +52,19 @@ void dump_fat_dir(const struct fat_dir *d)
   printf("DIR_FstClusLO: %0x04x\n", d->DIR_FstClusLO);
   printf("DIR_FileSize: %u\n", d->DIR_FileSize);
 }
+
+
+unsigned first_data_sector(const struct fat_bpb*b)
+{
+  static unsigned fds = 0;
+  fds = ( (b->BPB_RootEntCnt * 32) + (b->BPB_BytsPerSec -1)) / b->BPB_BytsPerSec;
+  return fds;
+}
+
+
+unsigned root_dir_sector(const struct fat_bpb *b)
+{
+  static unsigned rds = 0;
+  rds = b->BPB_RsvdSecCnt + (b->BPB_NumFATs * b->BPB_FATSz32) + first_data_sector(b);
+  return rds;
+}

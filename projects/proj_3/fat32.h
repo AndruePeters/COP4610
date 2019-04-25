@@ -1,5 +1,6 @@
 /*
   Function prototypes and structs for fat32
+  http://www.cs.uni.edu/~diesburg/courses/cop4610_fall10/week11/week11.pdf
 */
 
 #ifndef _GROUP_15_FAT32_H_
@@ -80,6 +81,7 @@ struct shell_env {
 };
 
 
+
 /*
  * Loads the bpb using fp.
  * Assumptions:
@@ -101,5 +103,16 @@ void dump_fat_bpb(const struct fat_bpb*b);
  *  d is not null and valid dir object
 */
 void dump_fat_dir(const struct fat_dir *d);
+
+
+
+
+/******************************************************************************/
+/*          Utility functions                                                 */
+/******************************************************************************/
+unsigned first_data_sector(const struct fat_bpb *b);
+unsigned root_dir_sector(const struct fat_bpb *b);
+
+
 
 #endif
