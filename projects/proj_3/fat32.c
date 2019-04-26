@@ -21,7 +21,7 @@ void dump_fat_bpb(const struct fat_bpb*b)
   printf("BPB_NumHeads: %u\n", b->BPB_NumHeads);
   printf("BPB_HiddSec: 0x%x\n", b->BPB_HiddSec);
   printf("BPB_TotSec32: %u\n", b->BPB_TotSec32);
-  printf("BPB_FATSz32: %u\n", b->BPB_FATSz32);
+  printf("BPB_FATSz32: %#x\n", b->BPB_FATSz32);
   printf("BPB_ExtFlags: 0x%x\n", b->BPB_ExtFlags);
   printf("BPB_FSVer: 0x%x\n", b->BPB_FSVer);
   printf("BPB_RootClus: %u\n", b->BPB_RootClus);
@@ -56,15 +56,21 @@ void dump_fat_dir(const struct fat_dir *d)
 
 unsigned first_data_sector(const struct fat_bpb*b)
 {
-  static unsigned fds = 0;
-  fds = ( (b->BPB_RootEntCnt * 32) + (b->BPB_BytsPerSec -1)) / b->BPB_BytsPerSec;
-  return fds;
+  return b->BPB_RsvdSecCnt + (b->BPB_NumFATs * b->BPB_FATSz32) + root_dir_sectors(b);
 }
 
 
-unsigned root_dir_sector(const struct fat_bpb *b)
+unsigned root_dir_sectors(const struct fat_bpb *b)
 {
-  static unsigned rds = 0;
-  rds = b->BPB_RsvdSecCnt + (b->BPB_NumFATs * b->BPB_FATSz32) + first_data_sector(b);
-  return rds;
+  return (( b->BPB_RootEntCnt * 32) + (b->BPB_BytsPerSec -1 )) / b->BPB_BytsPerSec;
+}
+
+unsigned first_sect_of_clus(const struct fat_bpb *b, unsigned clust_num)
+{
+  return ((clust_num - 2) * b->BPB_SecPerClus) + first_data_sector(b);
+}
+
+unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num)
+{
+  return sect_num * b->BPB_SecPerClus;
 }

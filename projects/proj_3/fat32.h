@@ -112,6 +112,9 @@ void dump_fat_dir(const struct fat_dir *d);
 /******************************************************************************/
 unsigned first_data_sector(const struct fat_bpb *b);
 unsigned root_dir_sector(const struct fat_bpb *b);
+unsigned root_dir_sectors(const struct fat_bpb *b);
+unsigned first_sect_of_clus(const struct fat_bpb *b, unsigned clust_num);
+unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num);
 
 
 
