@@ -90,6 +90,8 @@ struct shell_env {
 */
 void load_fat_bpb(struct fat_bpb* b, FILE *fp);
 
+void load_fat_dir(struct fat_bpb* b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset);
+
 /*
  * Dumps the information in b
  * Assumptions:
@@ -115,7 +117,7 @@ unsigned root_dir_sector(const struct fat_bpb *b);
 unsigned root_dir_sectors(const struct fat_bpb *b);
 unsigned first_sect_of_clus(const struct fat_bpb *b, unsigned clust_num);
 unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num);
-
+unsigned cluster_to_byte(const struct fat_bpb *b, unsigned clust_num);
 
 
 #endif

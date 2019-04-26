@@ -5,6 +5,20 @@ void load_fat_bpb(struct fat_bpb* b, FILE *fp)
   fread(b, sizeof(struct fat_bpb), 1, fp);
 }
 
+void load_fat_dir(struct fat_bpb* b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset)
+{
+    offset *= 32;
+    fseek(fp, cluster_to_byte(b, cluster), SEEK_SET);
+    fread(d, sizeof(struct fat_dir), 1, fp);
+}
+
+void load_entry(struct fat_bpb*b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset)
+{
+  offset = (offset + 1) * 32;
+  fseek(fp, cluster_to_byte(b, cluster), SEEK_SET);
+  fread(d, sizeof(struct fat_dir), 1, fp);
+}
+
 void dump_fat_bpb(const struct fat_bpb*b)
 {
   printf("BS_JMPBoot: 0x%02x 0x%02x 0x%02x\n", b->BS_jmpBoot[0], b->BS_jmpBoot[1], b->BS_jmpBoot[2]);
@@ -73,4 +87,9 @@ unsigned first_sect_of_clus(const struct fat_bpb *b, unsigned clust_num)
 unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num)
 {
   return sect_num * b->BPB_SecPerClus;
+}
+
+unsigned cluster_to_byte(const struct fat_bpb *b, unsigned clust_num)
+{
+  return clust_num * b->BPB_SecPerClus * b->BPB_BytsPerSec;
 }
