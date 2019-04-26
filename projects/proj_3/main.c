@@ -13,7 +13,7 @@ int main()
   int i;
   struct fat_bpb bpb;
   uint8_t *b_ptr = (char *)&bpb;
-
+  unsigned root_dir;
 
   fileptr = fopen("fat32.img", "rb");
   fseek(fileptr, 0, SEEK_END);
@@ -39,11 +39,12 @@ int main()
   printf("Size of FAT32_BPB:\t%lu\nSize of FAT32_DIR:\t%lu\n", sizeof(struct fat_bpb), sizeof(struct fat_dir));
   printf("\n\n");
   dump_fat_bpb(&bpb);
+  root_dir = first_sect_of_clus(&bpb, 2);
 
 
 
   printf("First data sector: 0x%x\n", first_data_sector(&bpb));
-  printf("Root dir sector: 0x%x\n", root_dir_sector(&bpb));
+  printf("Root dir sector: %x\n", root_dir * 512);
 
 
   return 0;
