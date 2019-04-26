@@ -8,13 +8,13 @@ void load_fat_bpb(struct fat_bpb* b, FILE *fp)
 void load_fat_dir(struct fat_bpb* b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset)
 {
     offset *= 32;
-    fseek(fp, cluster_to_byte(b, cluster), SEEK_SET);
+    fseek(fp, cluster_to_byte(b, cluster) + offset, SEEK_SET);
     fread(d, sizeof(struct fat_dir), 1, fp);
 }
 
 void load_entry(struct fat_bpb*b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset)
 {
-  offset = (offset + 1) * 32;
+  offset = offset *32 + 32;
   fseek(fp, cluster_to_byte(b, cluster), SEEK_SET);
   fread(d, sizeof(struct fat_dir), 1, fp);
 }
@@ -68,6 +68,18 @@ void dump_fat_dir(const struct fat_dir *d)
 }
 
 
+void fat32_ls(const struct fat_bpb *b, const char* dir)
+{
+  // this prints the root directory
+  /*for( i = 0; i < 16; ++i) {
+    load_fat_dir(&bpb, &d, fileptr, 2, i);
+    if (d.DIR_Attr & ATTR_DIRECTORY)
+      printf("Dir_name: %.11s\n", d.DIR_Name);
+  }*/
+
+}
+
+
 unsigned first_data_sector(const struct fat_bpb*b)
 {
   return b->BPB_RsvdSecCnt + (b->BPB_NumFATs * b->BPB_FATSz32) + root_dir_sectors(b);
@@ -91,5 +103,21 @@ unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num)
 
 unsigned cluster_to_byte(const struct fat_bpb *b, unsigned clust_num)
 {
-  return clust_num * b->BPB_SecPerClus * b->BPB_BytsPerSec;
+  return first_sect_of_clus(b, clust_num) * b->BPB_BytsPerSec;
+}
+
+uint32_t fat_entry(const struct fat_bpb *b, FILE *fp, unsigned clust_num)
+{
+  uint32_t entry;
+  fseek(fp, fat_address(b, clust_num), SEEK_SET);
+  fread(&entry, 4, 1, fp);
+  return entry;
+}
+
+uint32_t fat_address(const struct fat_bpb *b, uint32_t cluster)
+{
+  uint32_t fat_offset = cluster * 4;
+  uint32_t fat_sec_num = b->BPB_RsvdSecCnt + (fat_offset / b->BPB_BytsPerSec);
+  uint32_t fat_ent_offset = fat_offset % b->BPB_BytsPerSec;
+  return (fat_sec_num * b->BPB_BytsPerSec) + fat_ent_offset;
 }

@@ -107,6 +107,7 @@ void dump_fat_bpb(const struct fat_bpb*b);
 void dump_fat_dir(const struct fat_dir *d);
 
 
+void fat32_ls(const struct fat_bpb *b, const char* dir);
 
 
 /******************************************************************************/
@@ -118,6 +119,7 @@ unsigned root_dir_sectors(const struct fat_bpb *b);
 unsigned first_sect_of_clus(const struct fat_bpb *b, unsigned clust_num);
 unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num);
 unsigned cluster_to_byte(const struct fat_bpb *b, unsigned clust_num);
-
+uint32_t fat_entry(const struct fat_bpb *b, FILE *fp, unsigned clust_num);
+uint32_t fat_address(const struct fat_bpb *b, uint32_t cluster);
 
 #endif
