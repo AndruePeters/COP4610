@@ -132,7 +132,6 @@ uint32_t fat_address(const struct fat_bpb *b, uint32_t cluster)
 uint32_t fat_get_next_clus(const struct fat_bpb*b, FILE *fp, uint32_t curr_clus)
 {
   uint32_t fat_ent;
-  uint32_t offset = curr_clus * 4; // increment by 4 bytes
   fseek(fp, fat_address(b, curr_clus), SEEK_SET);
   fread(&fat_ent, sizeof(uint32_t), 1, fp);
   return fat_ent;
