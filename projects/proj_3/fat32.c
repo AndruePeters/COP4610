@@ -1,5 +1,6 @@
 #include "fat32.h"
 
+
 void load_fat_bpb(struct fat_bpb* b, FILE *fp)
 {
   fread(b, sizeof(struct fat_bpb), 1, fp);
@@ -60,10 +61,10 @@ void dump_fat_dir(const struct fat_dir *d)
   printf("DIR_CrtTime: %u\n", d->DIR_CrtTime);
   printf("DIR_CrtDate: %u\n", d->DIR_CrtDate);
   printf("DIR_LstAccDate: %u\n", d->DIR_LstAccDate);
-  printf("DIR_FstClusHI: 0x%04x\n", d->DIR_FstClusHI);
+  printf("DIR_FstClusHI: %#x\n", d->DIR_FstClusHI);
   printf("DIR_WrtTime: %u\n", d->DIR_WrtTime);
   printf("DIR_WrtDate: %u\n", d->DIR_WrtDate);
-  printf("DIR_FstClusLO: %0x04x\n", d->DIR_FstClusLO);
+  printf("DIR_FstClusLO: %#x\n", d->DIR_FstClusLO);
   printf("DIR_FileSize: %u\n", d->DIR_FileSize);
 }
 
@@ -114,10 +115,25 @@ uint32_t fat_entry(const struct fat_bpb *b, FILE *fp, unsigned clust_num)
   return entry;
 }
 
+/*
+  Returns the byte address for the img file for the cluster number
+*/
 uint32_t fat_address(const struct fat_bpb *b, uint32_t cluster)
 {
   uint32_t fat_offset = cluster * 4;
   uint32_t fat_sec_num = b->BPB_RsvdSecCnt + (fat_offset / b->BPB_BytsPerSec);
   uint32_t fat_ent_offset = fat_offset % b->BPB_BytsPerSec;
   return (fat_sec_num * b->BPB_BytsPerSec) + fat_ent_offset;
+}
+
+/*
+  Returns the next fat value from the fat table.
+*/
+uint32_t fat_get_next_clus(const struct fat_bpb*b, FILE *fp, uint32_t curr_clus)
+{
+  uint32_t fat_ent;
+  uint32_t offset = curr_clus * 4; // increment by 4 bytes
+  fseek(fp, fat_address(b, curr_clus), SEEK_SET);
+  fread(&fat_ent, sizeof(uint32_t), 1, fp);
+  return fat_ent;
 }

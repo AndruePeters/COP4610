@@ -121,5 +121,6 @@ unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num);
 unsigned cluster_to_byte(const struct fat_bpb *b, unsigned clust_num);
 uint32_t fat_entry(const struct fat_bpb *b, FILE *fp, unsigned clust_num);
 uint32_t fat_address(const struct fat_bpb *b, uint32_t cluster);
+uint32_t fat_get_next_clus(const struct fat_bpb*b, FILE *fp, uint32_t curr_clus);
 
 #endif
