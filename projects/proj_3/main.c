@@ -44,7 +44,11 @@ int main()
   fat32_ls(&fat, "asdf");
   //printf("\n\n\n");
 
-  fat32_cd(&fat, "/RED/0001/file.txt");
+  printf("\n\n");
+  fat32_cd(&fat, "/Red/");
+
+  printf("Red Cluster: %x\n\n", fat32_get_dir_clus(&fat, "RED", 2));
+
 
   // Everything below this is for the final shell
   char *line;
@@ -56,7 +60,7 @@ int main()
     }
   }
 
-
+  free(line);
   return 0;
 }
 
