@@ -108,16 +108,63 @@ void fat32_cd(const struct fat32_info *f, const char* dir)
   GQueue *q = g_queue_new(); //
   GList *walk = NULL;
   uint32_t clus = f->b.BPB_RootClus;
+  unsigned i = 0;
+  struct fat_dir d;
   tokenize_path(full_path, q);
 
   // q stores the tokenized version of full_path
   walk = g_queue_peek_head_link(q);
   while (walk) {
-    printf("%s\n", walk->data);
-    walk = walk->next;
+
+    // walk through the current cluster and see if walk->data is found
+    while ( clus < 0xFFFFFF8) {
+      for (i = 0; i < 16; ++i) {
+        load_fat_dir(f, &d, clus, i);
+
+        if ( ((d.DIR_Attr & ATTR_LONG_NAME_MASK) != ATTR_LONG_NAME) && (d.DIR_Name[0] != 0x00)) {
+          if ( (d.DIR_Attr & (ATTR_DIRECTORY | ATTR_VOLUME_ID)) == 0x00) {
+            return;
+          }
+          if ( (d.DIR_Attr & (ATTR_DIRECTORY | ATTR_VOLUME_ID)) == ATTR_DIRECTORY) {
+            if (strncmp(d.DIR_Name, walk->data, 8) == 0) {
+              walk = walk->next;
+              clus = (d.DIR_FstClusHI << 16) | d.DIR_FstClusLO;
+            }
+          }
+        }
+      } // end for
+      clus = fat_get_next_clus(f,  clus);
+    } // end while (clus)
+  } // end while (walk)
+}
+
+
+/*
+ * dir must be in current directory
+ */
+uint32_t fat32_get_dir_clus(const struct fat32_info *f, const char *dir, uint32_t curr_clus)
+{
+  uint32_t i,strsz;
+  struct fat_dir d;
+
+  strsz = strlen(dir);
+  if (strsz > 11) return 0;
+  while ( curr_clus < 0xFFFFFF8 ) {
+    for (i = 0; i < 16; ++i) {
+      load_fat_dir(f, &d, curr_clus, i);
+      if ( ((d.DIR_Attr & ATTR_LONG_NAME_MASK) != ATTR_LONG_NAME) && (d.DIR_Name[0] != 0x00)) {
+        if ( (d.DIR_Attr & (ATTR_DIRECTORY | ATTR_VOLUME_ID)) == ATTR_DIRECTORY) {
+          // this is a directory
+          if (strncmp(d.DIR_Name, dir, strsz) == 0) {
+            return (d.DIR_FstClusHI << 16) | d.DIR_FstClusLO;
+          }
+        }
+      }
+    } // end for
+    curr_clus = fat_get_next_clus(f,  curr_clus);
   }
-
-
+  // return 0 if folder not found in current directory
+  return 0;
 }
 
  void fat32_print_dir(struct fat32_info *f, const struct fat_dir *d)

@@ -132,5 +132,7 @@ unsigned cluster_to_byte(const struct fat32_info *f, unsigned clust_num);
 uint32_t fat_entry(const struct fat32_info *f  ,unsigned clust_num);
 uint32_t fat_address(const struct fat32_info *f, uint32_t cluster);
 uint32_t fat_get_next_clus(const struct fat32_info *f, uint32_t curr_clus);
+uint32_t fat32_get_dir_clus(const struct fat32_info *f, const char *dir, uint32_t curr_clus);
+
 
 #endif
