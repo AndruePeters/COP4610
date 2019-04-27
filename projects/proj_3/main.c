@@ -2,54 +2,90 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <glib.h> // used for function hash table
+
+#include "path.h"
+#include "tokenize.h"
 #include "fat32.h"
 #include "fat32_masks.h"
 
+
+/*
+ *  Returns what the user typed in.
+ */
+char *get_line();
+
 int main()
 {
-  FILE *fileptr;
+  struct fat32_info fat;
   int i;
-  struct fat_bpb bpb;
-  uint8_t *b_ptr = (char *)&bpb;
   unsigned root_dir;
-  struct fat_dir d, red;
-  uint32_t red_clust;
+  struct fat_dir d;
 
-  fileptr = fopen("fat32.img", "rb");
-  fseek(fileptr, 0, SEEK_END);
-  rewind(fileptr);
+  fat.fp = fopen("fat32.img", "rb");
+  fseek(fat.fp, 0, SEEK_END);
+  rewind(fat.fp);
+  load_fat_bpb(&fat);
 
-
-  rewind(fileptr);
-  load_fat_bpb(&bpb, fileptr);
-
-  root_dir = first_sect_of_clus(&bpb, 2);
-  load_fat_dir(&bpb, &d, fileptr, 2, 2);
+  root_dir = first_sect_of_clus(&fat, 2);
+  load_fat_dir(&fat, &d, 2, 2);
 
 
   for( i = 0; i < 16; ++i) {
-    load_fat_dir(&bpb, &d, fileptr, 2, i);
+    load_fat_dir(&fat, &d, 2, i);
     if (d.DIR_Attr & ATTR_DIRECTORY) {
       if (strncmp(d.DIR_Name, "RED", 3) == 0) {
         printf("Dir_name: %.11s\n", d.DIR_Name);
         dump_fat_dir(&d);
-        red = d;
       }
     }
   }
+  fat32_ls(&fat, "asdf");
+  //printf("\n\n\n");
 
-  uint32_t addr = 0x1b4;
-  printf("addr: %#x\n", fat_get_next_clus(&bpb, fileptr, addr));
-  while ( addr != 0xFFFFFFF) {
-    for (i = 0; i < 16; ++i) {
-      load_fat_dir(&bpb, &d, fileptr, addr, i);
-      if (d.DIR_Attr & ATTR_DIRECTORY)
-        printf("Dir_name: %.11s\n", d.DIR_Name);
+  fat32_cd(&fat, "/RED/0001/file.txt");
+
+  // Everything below this is for the final shell
+  char *line;
+  while (1) {
+    printf("%s:$  ", "fat32.img");
+
+    if (!(line = get_line())) {
+      continue;
     }
-    addr = fat_get_next_clus(&bpb, fileptr, addr);
   }
 
 
-
   return 0;
+}
+
+
+/*
+  Reads a complete line from stdin and sends returns it.
+*/
+char* get_line()
+{
+  unsigned lim_size = 4096;
+  unsigned pos = 0;
+  char* line = calloc(lim_size,  sizeof(char));
+  int c; /* fgets returns 277 values, so char can't be used */
+
+
+  while ( (c = fgetc(stdin)) != '\n' && !feof(stdin)) {
+    line[pos] = c;
+
+    if (++pos == lim_size) {
+        line = realloc(line, (lim_size *= 2) * sizeof(char));
+    }
+  }
+
+  line = realloc(line, (pos+1) * sizeof(char));
+  line[pos] = '\0';
+  char* exp = expand_env(line);
+  if (exp) {
+    free(line);
+    line = exp;
+  }
+  return line;
 }
