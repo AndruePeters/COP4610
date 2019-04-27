@@ -12,7 +12,7 @@
 #include "fat32_masks.h"
 
 struct fat_dir {
-  uint8_t DIR_Name[11];
+  char DIR_Name[11];
   uint8_t DIR_Attr;
   uint8_t DIR_NTRes;
 
@@ -75,6 +75,12 @@ struct fat_fsi {
   uint32_t FSI_TrailSig;
 };
 
+struct fat32_info {
+  struct fat_bpb b;
+  FILE *fp;
+  uint32_t current_cluster;
+};
+
 struct shell_env {
   char *pwd;
   char *img_name;
@@ -88,16 +94,16 @@ struct shell_env {
  *   fp is not null and is already opened.
  *   fp no longer points at the beginning of the file
 */
-void load_fat_bpb(struct fat_bpb* b, FILE *fp);
+void load_fat_bpb(struct fat32_info *f);
 
-void load_fat_dir(struct fat_bpb* b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset);
+void load_fat_dir(const struct fat32_info *f, struct fat_dir *d, unsigned cluster, unsigned offset);
 
 /*
  * Dumps the information in b
  * Assumptions:
  *  b is not null
 */
-void dump_fat_bpb(const struct fat_bpb*b);
+void dump_fat_bpb(const struct fat32_info *f);
 
 /*
  * Dumps the information in d
@@ -107,20 +113,24 @@ void dump_fat_bpb(const struct fat_bpb*b);
 void dump_fat_dir(const struct fat_dir *d);
 
 
-void fat32_ls(const struct fat_bpb *b, const char* dir);
+void fat32_ls(const struct fat32_info *f, const char* dir);
 
+/*
+ * Prints the name of the directory.
+ */
+ void fat32_print_dir(struct fat32_info *f, const struct fat_dir *d);
 
 /******************************************************************************/
 /*          Utility functions                                                 */
 /******************************************************************************/
-unsigned first_data_sector(const struct fat_bpb *b);
-unsigned root_dir_sector(const struct fat_bpb *b);
-unsigned root_dir_sectors(const struct fat_bpb *b);
-unsigned first_sect_of_clus(const struct fat_bpb *b, unsigned clust_num);
-unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num);
-unsigned cluster_to_byte(const struct fat_bpb *b, unsigned clust_num);
-uint32_t fat_entry(const struct fat_bpb *b, FILE *fp, unsigned clust_num);
-uint32_t fat_address(const struct fat_bpb *b, uint32_t cluster);
-uint32_t fat_get_next_clus(const struct fat_bpb*b, FILE *fp, uint32_t curr_clus);
+unsigned first_data_sector(const struct fat32_info *f);
+unsigned root_dir_sector(const struct fat32_info *f);
+unsigned root_dir_sectors(const struct fat32_info *f);
+unsigned first_sect_of_clus(const struct fat32_info *f, unsigned clust_num);
+unsigned sector_to_byte(const struct fat32_info *f, unsigned sect_num);
+unsigned cluster_to_byte(const struct fat32_info *f, unsigned clust_num);
+uint32_t fat_entry(const struct fat32_info *f  ,unsigned clust_num);
+uint32_t fat_address(const struct fat32_info *f, uint32_t cluster);
+uint32_t fat_get_next_clus(const struct fat32_info *f, uint32_t curr_clus);
 
 #endif

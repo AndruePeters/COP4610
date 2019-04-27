@@ -1,54 +1,55 @@
 #include "fat32.h"
+#include "path.h"
+#include <glib.h>
 
-
-void load_fat_bpb(struct fat_bpb* b, FILE *fp)
+void load_fat_bpb(struct fat32_info *f)
 {
-  fread(b, sizeof(struct fat_bpb), 1, fp);
+  fread(&f->b, sizeof(struct fat_bpb), 1, f->fp);
 }
 
-void load_fat_dir(struct fat_bpb* b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset)
+void load_fat_dir(const struct fat32_info *f, struct fat_dir *d, unsigned cluster, unsigned offset)
 {
     offset *= 32;
-    fseek(fp, cluster_to_byte(b, cluster) + offset, SEEK_SET);
-    fread(d, sizeof(struct fat_dir), 1, fp);
+    fseek(f->fp, cluster_to_byte(f, cluster) + offset, SEEK_SET);
+    fread(d, sizeof(struct fat_dir), 1, f->fp);
 }
 
-void load_entry(struct fat_bpb*b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset)
-{
-  offset = offset *32 + 32;
-  fseek(fp, cluster_to_byte(b, cluster), SEEK_SET);
-  fread(d, sizeof(struct fat_dir), 1, fp);
-}
+// void load_entry(struct fat_bpb*b, struct fat_dir *d, FILE *fp, unsigned cluster, unsigned offset)
+// {
+//   offset = offset *32 + 32;
+//   fseek(fp, cluster_to_byte(f, cluster), SEEK_SET);
+//   fread(d, sizeof(struct fat_dir), 1, fp);
+// }
 
-void dump_fat_bpb(const struct fat_bpb*b)
+void dump_fat_bpb(const struct fat32_info *f)
 {
-  printf("BS_JMPBoot: 0x%02x 0x%02x 0x%02x\n", b->BS_jmpBoot[0], b->BS_jmpBoot[1], b->BS_jmpBoot[2]);
-  printf("BS_OEMName: %.8s\n", b->BS_OEMName);
-  printf("BPB_BytesPerSec: %u\n", b->BPB_BytsPerSec);
-  printf("BPB_SecPerClus: %u\n", b->BPB_SecPerClus);
-  printf("BPB_RsvdSecCnt: %u\n", b->BPB_RsvdSecCnt);
-  printf("BPB_NumFATs: %u\n", b->BPB_NumFATs);
-  printf("BPB_RootEntCnt: %u\n", b->BPB_RootEntCnt);
-  printf("BPB_TotSec16: %u\n", b->BPB_TotSec16);
-  printf("BPB_Media: 0x%02x\n", b->BPB_Media);
-  printf("BPB_FATSz16: 0x%x\n", b->BPB_FATSz16);
-  printf("BPB_SecPerTrk: %u\n", b->BPB_SecPerTrk);
-  printf("BPB_NumHeads: %u\n", b->BPB_NumHeads);
-  printf("BPB_HiddSec: 0x%x\n", b->BPB_HiddSec);
-  printf("BPB_TotSec32: %u\n", b->BPB_TotSec32);
-  printf("BPB_FATSz32: %#x\n", b->BPB_FATSz32);
-  printf("BPB_ExtFlags: 0x%x\n", b->BPB_ExtFlags);
-  printf("BPB_FSVer: 0x%x\n", b->BPB_FSVer);
-  printf("BPB_RootClus: %u\n", b->BPB_RootClus);
-  printf("BPB_FSInfo: 0x%x\n", b->BPB_FSInfo);
-  printf("BPB_BkBootSec: %u\n", b->BPB_BkBootSec);
-  printf("BPB_Reserved: %.12s\n", b->BPB_Reserved);
-  printf("BS_DrvNum: %u\n", b->BS_DrvNum);
-  printf("BS_Reserved1: 0x%x\n", b->BS_Reserved1);
-  printf("BS_BootSig: 0x%x\n", b->BS_BootSig);
-  printf("BS_VolID: %u\n", b->BS_VolID);
-  printf("BS_VolLab: %.11s\n", b->BS_VolLab);
-  printf("BS_FilSysType: %.8s\n", b->BS_FilSysType);
+  printf("BS_JMPBoot: 0x%02x 0x%02x 0x%02x\n", f->b.BS_jmpBoot[0], f->b.BS_jmpBoot[1], f->b.BS_jmpBoot[2]);
+  printf("BS_OEMName: %.8s\n",f->b.BS_OEMName);
+  printf("BPB_BytesPerSec: %u\n",f->b.BPB_BytsPerSec);
+  printf("BPB_SecPerClus: %u\n",f->b.BPB_SecPerClus);
+  printf("BPB_RsvdSecCnt: %u\n",f->b.BPB_RsvdSecCnt);
+  printf("BPB_NumFATs: %u\n",f->b.BPB_NumFATs);
+  printf("BPB_RootEntCnt: %u\n",f->b.BPB_RootEntCnt);
+  printf("BPB_TotSec16: %u\n",f->b.BPB_TotSec16);
+  printf("BPB_Media: 0x%02x\n",f->b.BPB_Media);
+  printf("BPB_FATSz16: 0x%x\n",f->b.BPB_FATSz16);
+  printf("BPB_SecPerTrk: %u\n",f->b.BPB_SecPerTrk);
+  printf("BPB_NumHeads: %u\n",f->b.BPB_NumHeads);
+  printf("BPB_HiddSec: 0x%x\n",f->b.BPB_HiddSec);
+  printf("BPB_TotSec32: %u\n",f->b.BPB_TotSec32);
+  printf("BPB_FATSz32: %#x\n",f->b.BPB_FATSz32);
+  printf("BPB_ExtFlags: 0x%x\n",f->b.BPB_ExtFlags);
+  printf("BPB_FSVer: 0x%x\n",f->b.BPB_FSVer);
+  printf("BPB_RootClus: %u\n",f->b.BPB_RootClus);
+  printf("BPB_FSInfo: 0x%x\n",f->b.BPB_FSInfo);
+  printf("BPB_BkBootSec: %u\n",f->b.BPB_BkBootSec);
+  printf("BPB_Reserved: %.12s\n",f->b.BPB_Reserved);
+  printf("BS_DrvNum: %u\n",f->b.BS_DrvNum);
+  printf("BS_Reserved1: 0x%x\n",f->b.BS_Reserved1);
+  printf("BS_BootSig: 0x%x\n",f->b.BS_BootSig);
+  printf("BS_VolID: %u\n",f->b.BS_VolID);
+  printf("BS_VolLab: %.11s\n",f->b.BS_VolLab);
+  printf("BS_FilSysType: %.8s\n",f->b.BS_FilSysType);
 }
 
 
@@ -69,70 +70,119 @@ void dump_fat_dir(const struct fat_dir *d)
 }
 
 
-void fat32_ls(const struct fat_bpb *b, const char* dir)
+void fat32_ls(const struct fat32_info *f, const char* dir)
 {
-  // this prints the root directory
-  /*for( i = 0; i < 16; ++i) {
-    load_fat_dir(&bpb, &d, fileptr, 2, i);
-    if (d.DIR_Attr & ATTR_DIRECTORY)
-      printf("Dir_name: %.11s\n", d.DIR_Name);
-  }*/
+  uint32_t i, clus = 2; // clus = get_dir_cluster
+  if (strcmp(dir, "") == 0 || strcmp(dir, ".") == 0) {
+    clus = f->current_cluster;
+  }
+
+  struct fat_dir d;
+  while ( clus < 0xFFFFFF8) {
+    for (i = 0; i < 16; ++i) {
+      load_fat_dir(f, &d, clus, i);
+
+      if ( ((d.DIR_Attr & ATTR_LONG_NAME_MASK) != ATTR_LONG_NAME) && (d.DIR_Name[0] != 0x00)) {
+        if ( (d.DIR_Attr & (ATTR_DIRECTORY | ATTR_VOLUME_ID)) == 0x00) {
+          // found a file
+          printf("%.8s", d.DIR_Name);
+          if (d.DIR_Name[8] != 0x20) {
+            printf(".%.3s", d.DIR_Name+8);
+          }
+          printf("\n");
+        } else if ( (d.DIR_Attr & (ATTR_DIRECTORY | ATTR_VOLUME_ID)) == ATTR_DIRECTORY) {
+          printf("%.8s\n", d.DIR_Name);
+        } else if ( (d.DIR_Attr & (ATTR_DIRECTORY | ATTR_VOLUME_ID)) == ATTR_VOLUME_ID) {
+          // found a volume
+        }
+      }
+    }
+    clus = fat_get_next_clus(f,  clus);
+  }
+}
+
+void fat32_cd(const struct fat32_info *f, const char* dir)
+{
+  // returns string
+  char *full_path = get_full_path(dir);
+  GQueue *q = g_queue_new(); //
+  GList *walk = NULL;
+  uint32_t clus = f->b.BPB_RootClus;
+  tokenize_path(full_path, q);
+
+  // q stores the tokenized version of full_path
+  walk = g_queue_peek_head_link(q);
+  while (walk) {
+    printf("%s\n", walk->data);
+    walk = walk->next;
+  }
+
+
+}
+
+ void fat32_print_dir(struct fat32_info *f, const struct fat_dir *d)
+{
 
 }
 
 
-unsigned first_data_sector(const struct fat_bpb*b)
+unsigned first_data_sector(const struct fat32_info *f)
 {
-  return b->BPB_RsvdSecCnt + (b->BPB_NumFATs * b->BPB_FATSz32) + root_dir_sectors(b);
+  return f->b.BPB_RsvdSecCnt + (f->b.BPB_NumFATs * f->b.BPB_FATSz32) + root_dir_sectors(f);
 }
 
 
-unsigned root_dir_sectors(const struct fat_bpb *b)
+unsigned root_dir_sector(const struct fat32_info *f)
 {
-  return (( b->BPB_RootEntCnt * 32) + (b->BPB_BytsPerSec -1 )) / b->BPB_BytsPerSec;
+  return ((f->b.BPB_RootEntCnt * 32) + (f->b.BPB_BytsPerSec -1 )) /f->b.BPB_BytsPerSec;
 }
 
-unsigned first_sect_of_clus(const struct fat_bpb *b, unsigned clust_num)
+unsigned root_dir_sectors(const struct fat32_info *f)
 {
-  return ((clust_num - 2) * b->BPB_SecPerClus) + first_data_sector(b);
+   return (( f->b.BPB_RootEntCnt * 32) + (f->b.BPB_BytsPerSec -1 )) / f->b.BPB_BytsPerSec;
 }
 
-unsigned sector_to_byte(const struct fat_bpb *b, unsigned sect_num)
+unsigned first_sect_of_clus(const struct fat32_info *f, unsigned clust_num)
 {
-  return sect_num * b->BPB_SecPerClus;
+  return ((clust_num - 2) * (f->b.BPB_SecPerClus)) + first_data_sector(f);
 }
 
-unsigned cluster_to_byte(const struct fat_bpb *b, unsigned clust_num)
+unsigned sector_to_byte(const struct fat32_info *f, unsigned sect_num)
 {
-  return first_sect_of_clus(b, clust_num) * b->BPB_BytsPerSec;
+  return sect_num * f->b.BPB_SecPerClus;
 }
 
-uint32_t fat_entry(const struct fat_bpb *b, FILE *fp, unsigned clust_num)
+unsigned cluster_to_byte(const struct fat32_info *f, unsigned clust_num)
+{
+  return first_sect_of_clus(f, clust_num) * f->b.BPB_BytsPerSec;
+}
+
+uint32_t fat_entry(const struct fat32_info *f  ,unsigned clust_num)
 {
   uint32_t entry;
-  fseek(fp, fat_address(b, clust_num), SEEK_SET);
-  fread(&entry, 4, 1, fp);
+  fseek(f->fp, fat_address(f, clust_num), SEEK_SET);
+  fread(&entry, 4, 1, f->fp);
   return entry;
 }
 
 /*
   Returns the byte address for the img file for the cluster number
 */
-uint32_t fat_address(const struct fat_bpb *b, uint32_t cluster)
+uint32_t fat_address(const struct fat32_info *f, uint32_t cluster)
 {
   uint32_t fat_offset = cluster * 4;
-  uint32_t fat_sec_num = b->BPB_RsvdSecCnt + (fat_offset / b->BPB_BytsPerSec);
-  uint32_t fat_ent_offset = fat_offset % b->BPB_BytsPerSec;
-  return (fat_sec_num * b->BPB_BytsPerSec) + fat_ent_offset;
+  uint32_t fat_sec_num =f->b.BPB_RsvdSecCnt + (fat_offset /f->b.BPB_BytsPerSec);
+  uint32_t fat_ent_offset = fat_offset %f->b.BPB_BytsPerSec;
+  return (fat_sec_num *f->b.BPB_BytsPerSec) + fat_ent_offset;
 }
 
 /*
   Returns the next fat value from the fat table.
 */
-uint32_t fat_get_next_clus(const struct fat_bpb*b, FILE *fp, uint32_t curr_clus)
+uint32_t fat_get_next_clus(const struct fat32_info *f, uint32_t curr_clus)
 {
   uint32_t fat_ent;
-  fseek(fp, fat_address(b, curr_clus), SEEK_SET);
-  fread(&fat_ent, sizeof(uint32_t), 1, fp);
+  fseek(f->fp, fat_address(f, curr_clus), SEEK_SET);
+  fread(&fat_ent, sizeof(uint32_t), 1, f->fp);
   return fat_ent;
 }
