@@ -140,13 +140,14 @@ uint32_t fat32_cd(struct fat32_info *f, const char* dir)
   // need the backups for the previous case
   prev_clus = pos.cluster;
   prev_offset = pos.offset;
-
+  f->pos.cluster = prev_clus;
+  f->pos.offset = prev_offset;
   // make sure it is correct
   if (pos.cluster != 0 && pos.offset != 0) {
     load_fat_dir(f, &d, pos.cluster, pos.offset);
      if (fat32_is_dir(&d)) {
-       f->pos.cluster = prev_clus;
-       f->pos.offset = prev_offset;
+       printf("made it\n");
+
      }
    }
 
