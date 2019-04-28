@@ -55,23 +55,23 @@ int main()
       else
         fat32_cd(&fat, instr->tokens[1]);
     } else if (strcmp(instr->tokens[0], "size") == 0) {
-
+        printf("Sorry, we don't have this command yet.\n");
     } else if (strcmp(instr->tokens[0], "creat") == 0) {
-
+      printf("Sorry, we don't have this command yet.\n");
     } else if (strcmp(instr->tokens[0], "mkdir") == 0) {
-
+      printf("Sorry, we don't have this command yet.\n");
     } else if (strcmp(instr->tokens[0], "open") == 0) {
-
+      printf("Sorry, we don't have this command yet.\n");
     } else if (strcmp(instr->tokens[0], "close") == 0) {
-
+      printf("Sorry, we don't have this command yet.\n");
     } else if (strcmp(instr->tokens[0], "read") == 0) {
-
+      printf("Sorry, we don't have this command yet.\n");
     } else if (strcmp(instr->tokens[0], "write") == 0) {
-
+      printf("Sorry, we don't have this command yet.\n");
     } else if (strcmp(instr->tokens[0], "rm") == 0) {
-
+      printf("Sorry, we don't have this command yet.\n");
     } else if (strcmp(instr->tokens[0], "rmdir" ) == 0) {
-
+      printf("Sorry, we don't have this command yet.\n");
     }
 
     free(line);
