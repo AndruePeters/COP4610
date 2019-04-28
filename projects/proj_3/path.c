@@ -25,10 +25,6 @@ static char* expand_shortcuts(const char* p);
 
 
 
-/*
-  Converts a GQueue* object to a c string.
-*/
-static char* queue_to_string(GQueue* q);
 
 /*
   Frees all allocated data in GQueue struct.
@@ -96,10 +92,7 @@ char* expand_shortcuts(const char* p)
 
   char *exp=NULL;
 
-  if (p[0] == '~') {
-    /* no +1 because omitting first character */
-    exp = expand_home(p);
-  } else if (p[0] != '/') {
+  if (p[0] != '/') {
     /* Must be relative path at this point */
     exp = expand_pwd(p);
   } else {

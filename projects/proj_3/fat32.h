@@ -9,7 +9,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "fat32_masks.h"
+
+
+struct dir_pos {
+  uint32_t cluster;
+  unsigned offset;
+};
 
 struct fat_dir {
   char DIR_Name[11];
@@ -79,12 +86,15 @@ struct fat32_info {
   struct fat_bpb b;
   FILE *fp;
   uint32_t current_cluster;
+  struct dir_pos pos;
 };
 
 struct shell_env {
   char *pwd;
   char *img_name;
 };
+
+
 
 
 
@@ -114,6 +124,11 @@ void dump_fat_dir(const struct fat_dir *d);
 
 
 void fat32_ls(const struct fat32_info *f, const char* dir);
+uint32_t fat32_cd(struct fat32_info *f, const char* dir);
+void fat32_size(const struct fat32_info *f, const char* dir);
+void fat32_info(const struct fat32_info *f);
+void fat32_exit(struct fat32_info *f);
+
 
 /*
  * Prints the name of the directory.
@@ -132,7 +147,9 @@ unsigned cluster_to_byte(const struct fat32_info *f, unsigned clust_num);
 uint32_t fat_entry(const struct fat32_info *f  ,unsigned clust_num);
 uint32_t fat_address(const struct fat32_info *f, uint32_t cluster);
 uint32_t fat_get_next_clus(const struct fat32_info *f, uint32_t curr_clus);
-uint32_t fat32_get_dir_clus(const struct fat32_info *f, const char *dir, uint32_t curr_clus);
+struct dir_pos fat32_get_curr_dir_pos(const struct fat32_info *f, const char *dir, uint32_t curr_clus);
+struct dir_pos fat32_get_dir_pos(const struct fat32_info *f, const char *dir, uint32_t curr_clus);
+bool fat32_is_dir(const struct fat_dir *d);
 
 
 #endif

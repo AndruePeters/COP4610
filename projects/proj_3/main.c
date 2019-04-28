@@ -22,32 +22,26 @@ int main()
   int i;
   unsigned root_dir;
   struct fat_dir d;
-
+  struct dir_pos pos;
   fat.fp = fopen("fat32.img", "rb");
+  fat.pos.cluster = 2;
   fseek(fat.fp, 0, SEEK_END);
   rewind(fat.fp);
   load_fat_bpb(&fat);
 
-  root_dir = first_sect_of_clus(&fat, 2);
   load_fat_dir(&fat, &d, 2, 2);
 
 
-  for( i = 0; i < 16; ++i) {
-    load_fat_dir(&fat, &d, 2, i);
-    if (d.DIR_Attr & ATTR_DIRECTORY) {
-      if (strncmp(d.DIR_Name, "RED", 3) == 0) {
-        printf("Dir_name: %.11s\n", d.DIR_Name);
-        dump_fat_dir(&d);
-      }
-    }
-  }
-  fat32_ls(&fat, "asdf");
+
+  fat32_cd(&fat, "BLUE");
   //printf("\n\n\n");
 
   printf("\n\n");
-  fat32_cd(&fat, "/Red/");
+  //fat32_cd(&fat, "RED");
 
-  printf("Red Cluster: %x\n\n", fat32_get_dir_clus(&fat, "RED", 2));
+  pos = fat32_get_dir_pos(&fat, "RED", 2);
+  //printf("Red Cluster: %x\n\n", fat32_get_dir_pos(&fat, "RED", 2).cluster);
+  //printf("BLUE Parent Cluster: %x\n\n", fat32_get_dir_pos(&fat, "..", fat32_get_dir_pos(&fat, "BLUE", 2).cluster).cluster);
 
 
   // Everything below this is for the final shell
@@ -58,6 +52,10 @@ int main()
     if (!(line = get_line())) {
       continue;
     }
+
+    //fat.current_cluster = fat32_cd(&fat, line);
+    fat32_ls(&fat, line);
+    printf("\n\n");
   }
 
   free(line);

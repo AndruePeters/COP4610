@@ -89,5 +89,9 @@ char* expand_env(const char *src);
 */
 void tokenize_path(const char* p, GQueue* q);
 
+/*
+  Converts a GQueue* object to a c string.
+*/
+char* queue_to_string(GQueue* q);
 
 #endif
