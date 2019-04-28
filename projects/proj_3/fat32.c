@@ -125,7 +125,6 @@ uint32_t fat32_cd(struct fat32_info *f, const char* dir)
   // q stores the tokenized version of full_path
   walk = g_queue_peek_head_link(q);
   while (walk->next) {
-    printf("entered\n");
     pos = fat32_get_curr_dir_pos(f, walk->data, pos.cluster);
     if (!pos.cluster) {
       printf("Directory not found.\n");
@@ -136,21 +135,16 @@ uint32_t fat32_cd(struct fat32_info *f, const char* dir)
 
   // now do last case
   // clus cannot be null at this point
-  printf("walk->data%sx\n", (char *)walk->data);
   pos = fat32_get_curr_dir_pos(f, walk->data, pos.cluster);
-  printf("pos values: cluster: %d\noffset %d\n", pos.cluster, pos.offset);
 
   // need the backups for the previous case
   prev_clus = pos.cluster;
   prev_offset = pos.offset;
 
-
+  // make sure it is correct
   if (pos.cluster != 0 && pos.offset != 0) {
     load_fat_dir(f, &d, pos.cluster, pos.offset);
-    printf("%.8s\n", d.DIR_Name);
-
      if (fat32_is_dir(&d)) {
-       printf("is dir\n");
        f->pos.cluster = prev_clus;
        f->pos.offset = prev_offset;
      }
@@ -232,7 +226,6 @@ struct dir_pos fat32_get_curr_dir_pos(const struct fat32_info *f, const char *di
         if ( (d.DIR_Attr & (ATTR_DIRECTORY | ATTR_VOLUME_ID)) == ATTR_DIRECTORY) {
           // this is a directory
           if (strncmp(d.DIR_Name, dir, strsz) == 0) {
-                  printf("fat32_get: %.8sx\n", d.DIR_Name);
             pos.cluster = (d.DIR_FstClusHI << 16) | d.DIR_FstClusLO;
             pos.offset = i;
             return pos;

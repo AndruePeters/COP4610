@@ -87,6 +87,7 @@ struct fat32_info {
   struct fat_bpb b;
   FILE *fp;
   struct dir_pos pos;
+  char path[4000];
 };
 
 struct shell_env {
