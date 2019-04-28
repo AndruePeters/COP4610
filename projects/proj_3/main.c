@@ -19,42 +19,66 @@ char *get_line();
 int main()
 {
   struct fat32_info fat;
-  int i;
-  unsigned root_dir;
-  struct fat_dir d;
-  struct dir_pos pos;
+  struct instruction *instr;
+  instruction_init(&instr);
   fat.fp = fopen("fat32.img", "rb");
-  fat.pos.cluster = 2;
-  fseek(fat.fp, 0, SEEK_END);
-  rewind(fat.fp);
   load_fat_bpb(&fat);
+  fat.pos.cluster = fat.b.BPB_RootClus;
 
 
 
-  rewind(fat.fp);
-  fat32_cd(&fat, "BLUE/BLUE1");
-  //printf("\n\n\n");
 
-  printf("\n\n");
-  //fat32_cd(&fat, "RED");
-
-//  pos = fat32_get_dir_pos(&fat, "GREEN", 2);
-
-  // Everything below this is for the final shell
   char *line;
-  while (1) {
+  bool keep_running = true;
+  while (keep_running) {
     printf("%s:$  ", "fat32.img");
 
     if (!(line = get_line())) {
       continue;
     }
+    add_tokens(instr, line);
 
-    //fat.current_cluster = fat32_cd(&fat, line);
-    fat32_ls(&fat, line);
-    printf("\n\n");
+    if (strcmp(instr->tokens[0], "exit") == 0) {
+      keep_running = false;
+      printf("Thank you for using our fat32 system.\nHave a nice day.\n");
+    } else if (strcmp(instr->tokens[0], "info") == 0) {
+      printf("Here is the bpb information for you\n\n");
+      dump_fat_bpb(&fat);
+    } else if (strcmp(instr->tokens[0], "ls") == 0) {
+      if (instr->num_tokens < 2)
+        fat32_ls(&fat, ".");
+      else
+        fat32_ls(&fat, instr->tokens[1]);
+    } else if (strcmp(instr->tokens[0], "cd") == 0) {
+      if (instr->num_tokens < 2)
+        fat32_cd(&fat, ".");
+      else
+        fat32_cd(&fat, instr->tokens[1]);
+    } else if (strcmp(instr->tokens[0], "size") == 0) {
+
+    } else if (strcmp(instr->tokens[0], "creat") == 0) {
+
+    } else if (strcmp(instr->tokens[0], "mkdir") == 0) {
+
+    } else if (strcmp(instr->tokens[0], "open") == 0) {
+
+    } else if (strcmp(instr->tokens[0], "close") == 0) {
+
+    } else if (strcmp(instr->tokens[0], "read") == 0) {
+
+    } else if (strcmp(instr->tokens[0], "write") == 0) {
+
+    } else if (strcmp(instr->tokens[0], "rm") == 0) {
+
+    } else if (strcmp(instr->tokens[0], "rmdir" ) == 0) {
+
+    }
+
+    free(line);
+    clear_instruction(instr);
   }
 
-  free(line);
+
   return 0;
 }
 
