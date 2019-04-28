@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "fat32_masks.h"
+#include <ctype.h>
 
 
 struct dir_pos {
@@ -85,7 +86,6 @@ struct fat_fsi {
 struct fat32_info {
   struct fat_bpb b;
   FILE *fp;
-  uint32_t current_cluster;
   struct dir_pos pos;
 };
 
@@ -128,7 +128,7 @@ uint32_t fat32_cd(struct fat32_info *f, const char* dir);
 void fat32_size(const struct fat32_info *f, const char* dir);
 void fat32_info(const struct fat32_info *f);
 void fat32_exit(struct fat32_info *f);
-
+void fat32_get_dir_name(struct fat_dir *d, char *buffer);
 
 /*
  * Prints the name of the directory.
