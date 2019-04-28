@@ -29,20 +29,16 @@ int main()
   rewind(fat.fp);
   load_fat_bpb(&fat);
 
-  load_fat_dir(&fat, &d, 2, 2);
 
 
-
-  fat32_cd(&fat, "BLUE");
+  rewind(fat.fp);
+  fat32_cd(&fat, "BLUE/BLUE1");
   //printf("\n\n\n");
 
   printf("\n\n");
   //fat32_cd(&fat, "RED");
 
-  pos = fat32_get_dir_pos(&fat, "RED", 2);
-  //printf("Red Cluster: %x\n\n", fat32_get_dir_pos(&fat, "RED", 2).cluster);
-  //printf("BLUE Parent Cluster: %x\n\n", fat32_get_dir_pos(&fat, "..", fat32_get_dir_pos(&fat, "BLUE", 2).cluster).cluster);
-
+//  pos = fat32_get_dir_pos(&fat, "GREEN", 2);
 
   // Everything below this is for the final shell
   char *line;
